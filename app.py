@@ -1,11 +1,11 @@
 import html
+import os
 
 import requests
 import streamlit as st
 
 
-API_URL = "http://127.0.0.1:8000"
-
+API_URL = os.getenv("ORACLE_X_API_URL", "http://127.0.0.1:8000").rstrip("/")
 
 # ---------------------------------------------------------------------
 # Page Configuration
