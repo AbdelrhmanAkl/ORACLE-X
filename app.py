@@ -1,4 +1,5 @@
 import html
+import json
 import os
 
 import requests
@@ -103,6 +104,8 @@ STR = {
         "tech_callout": "The AI only explains results that were already produced. Business rules decide the facts, the recommendation and its verification.",
         "footer": "Decisions are produced and verified by fixed business rules. Simulated inputs are always labelled, estimated values stay traceable, and the cause analysis never claims more certainty than the evidence allows. The AI assistant only explains the results.",
         "ar_note": "",
+        "translating": "Translating...",
+        "tr_note": "",
     },
     "ar": {
         "brand_tag": "ذكاء القرارات",
@@ -178,8 +181,21 @@ STR = {
         "hist_used": "استخدام بيانات تاريخية",
         "tech_callout": "الذكاء الاصطناعي يشرح فقط نتائج تم إنتاجها مسبقًا. أما الحقائق والتوصية والتحقق منها فتحددها قواعد العمل.",
         "footer": "القرارات تنتجها وتتحقق منها قواعد عمل ثابتة. المدخلات المحاكاة موسومة دائمًا، والقيم التقديرية قابلة للتتبع، وتحليل الأسباب لا يدّعي يقينًا أكثر مما تسمح به الأدلة. ويقتصر دور الذكاء الاصطناعي على شرح النتائج.",
-        "ar_note": "بعض النصوص التفصيلية القادمة من الخادم قد تظهر بالإنجليزية.",
+        "ar_note": "بعض النصوص التفصيلية القادمة من الخادم قد تظهر بالإنجليزية لأن الترجمة التلقائية غير مفعّلة.",
+        "translating": "جارٍ الترجمة...",
+        "tr_note": "تمت ترجمة نصوص النتائج تلقائيًا بالذكاء الاصطناعي، وقد تحتوي على فروق بسيطة عن الأصل الإنجليزي.",
     },
+}
+
+# The seven incidents: id -> (English name, Arabic name)
+INCIDENT_NAMES = {
+    2: ("Demand & Supply Imbalance", "اختلال الطلب والعرض"),
+    3: ("Revenue Decline", "انخفاض الإيرادات"),
+    4: ("Inventory Shortage", "نقص المخزون"),
+    5: ("Customer Satisfaction Drop", "تراجع رضا العملاء"),
+    6: ("Delivery Performance Issue", "مشكلة أداء التوصيل"),
+    7: ("Seller Performance Risk", "مخاطر أداء البائعين"),
+    8: ("Operational Cost Increase", "ارتفاع التكاليف التشغيلية"),
 }
 
 
@@ -239,6 +255,19 @@ PRETTY = {
         "ADAPTIVE_INTELLIGENCE": "الذكاء التكيفي",
         "LLM_USED": "استخدام الذكاء الاصطناعي",
         "LLM_INTERPRETATION": "شرح الذكاء الاصطناعي",
+        "INSUFFICIENT_EVIDENCE": "أدلة غير كافية",
+        "INSUFFICIENT-EVIDENCE": "أدلة غير كافية",
+        "INSUFFICIENT_LEARNING_DATA": "بيانات تعلّم غير كافية",
+        "PENDING": "قيد الانتظار",
+        "COMPLETED": "مكتمل",
+        "FAILED": "فشل",
+        "REJECTED": "مرفوض",
+        "WARNING": "تحذير",
+        "PASS": "ناجح",
+        "ERROR": "خطأ",
+        "AVAILABLE": "متاح",
+        "STRUCTURALLY_STRONG": "قوي هيكليًا",
+        "N/A": "غير متاح",
     },
 }
 
@@ -280,11 +309,110 @@ def esc(value):
     return html.escape(str(value))
 
 
+RUNTIME_TR = {}  # filled per run with automatic Arabic translations
+
+
 def dyn(value):
-    """Translate known fixed server sentences when the UI is Arabic."""
+    """Return the Arabic version of a server text when one is available."""
     if IS_AR and isinstance(value, str):
-        return DYN_AR.get(value.strip(), value)
+        key = value.strip()
+        return DYN_AR.get(key) or RUNTIME_TR.get(key) or value
     return value
+
+
+GROQ_MODEL = os.getenv("ORACLE_X_TRANSLATE_MODEL", "openai/gpt-oss-120b")
+
+
+def get_groq_key():
+    """Read the Groq key from Streamlit secrets or the environment."""
+    try:
+        key = st.secrets.get("GROQ_API_KEY")
+    except Exception:
+        key = None
+    return key or os.getenv("GROQ_API_KEY")
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def translate_to_arabic(texts):
+    """
+    Translate a tuple of English texts to Arabic with Groq.
+    Returns {english: arabic}. Raises on failure so failures are not cached.
+    """
+    key = get_groq_key()
+    if not key:
+        raise RuntimeError("GROQ_API_KEY is not configured")
+
+    system = (
+        "You translate business-analytics text from English to Modern Standard "
+        "Arabic. Keep every number, percentage, currency amount, incident id, "
+        "and code identifier (such as ELEVATED_PRESSURE) exactly as written. "
+        "Use clear, simple wording for non-technical readers and keep the "
+        "original meaning, including every statement of uncertainty. "
+        "Input is a JSON array of strings. Reply with ONLY a JSON array of "
+        "the same length and order, containing the Arabic translations. "
+        "No markdown and no extra text."
+    )
+    response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}"},
+        json={
+            "model": GROQ_MODEL,
+            "temperature": 0.1,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": json.dumps(list(texts), ensure_ascii=False)},
+            ],
+        },
+        timeout=90,
+    )
+    response.raise_for_status()
+    content = response.json()["choices"][0]["message"]["content"].strip()
+    if content.startswith("```"):
+        content = content.strip("`")
+        content = content[content.find("["):]
+    translated = json.loads(content)
+    if not isinstance(translated, list) or len(translated) != len(texts):
+        raise ValueError("translation size mismatch")
+    return {src: str(dst) for src, dst in zip(texts, translated)}
+
+
+def collect_server_texts(payload):
+    """Every free-text string from the API that the page shows."""
+    found = []
+
+    def add(value):
+        if isinstance(value, str) and value.strip():
+            found.append(value.strip())
+
+    incident = payload.get("incident", {}) or {}
+    decision = payload.get("decision", {}) or {}
+    llm = payload.get("llm_interpretation", {}) or {}
+    rca = payload.get("root_cause_analysis", {}) or {}
+
+    for value in (
+        incident.get("title"),
+        incident.get("summary"),
+        decision.get("recommended_action"),
+        decision.get("rationale"),
+        llm.get("executive_summary"),
+    ):
+        add(value)
+
+    for name in ("key_observations", "uncertainty", "unresolved_questions"):
+        for value in llm.get(name, []) or []:
+            add(value)
+
+    for cause in rca.get("candidate_causes", []) or []:
+        for name in ("candidate_cause", "evidence_for", "evidence_against"):
+            add(cause.get(name))
+
+    # unique, keep order, skip what is already translated by hand
+    seen, todo = set(), []
+    for text in found:
+        if text not in seen and text not in DYN_AR:
+            seen.add(text)
+            todo.append(text)
+    return todo
 
 
 def md(markup):
@@ -296,6 +424,8 @@ def md(markup):
     together).
     """
     flat = " ".join(line.strip() for line in markup.splitlines() if line.strip())
+    if IS_AR:
+        flat = f'<div dir="rtl" style="text-align:right">{flat}</div>'
     st.markdown(flat, unsafe_allow_html=True)
 
 
@@ -591,13 +721,24 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 [data-baseweb="tab"], [data-baseweb="select"], [data-testid="stNumberInput"] {
     font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, sans-serif;
 }
-.stApp, [data-testid="stMain"] { direction: rtl; text-align: right; }
-[data-testid="stNumberInput"] input { direction: ltr; text-align: left; }
-.ox-intro h1, .ox-verdict-title { letter-spacing: 0; }
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
+.block-container, [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"],
+[data-testid="stMarkdownContainer"], [data-testid="stAlert"], [data-testid="stSpinner"],
+[data-testid="stTabs"], [data-baseweb="tab-list"], [data-testid="stSelectbox"],
+[data-testid="stNumberInput"], [data-testid="stRadio"], .stButton {
+    direction: rtl !important;
+    text-align: right !important;
+}
+[data-testid="stMarkdownContainer"] p { text-align: right !important; }
+[data-testid="stNumberInput"] input { direction: ltr !important; text-align: left !important; }
+[data-testid="stSelectbox"] div[data-baseweb="select"] * { text-align: right !important; direction: rtl !important; }
+[data-baseweb="popover"] li, [data-baseweb="popover"] ul { direction: rtl !important; text-align: right !important; }
+[data-testid="stRadio"] [role="radiogroup"] { margin-inline-start: 0; }
+.stButton > button { text-align: center !important; }
+.ox-intro h1, .ox-verdict-title, .ox-section h3 { letter-spacing: 0; }
 .ox-list li { padding: 0.7rem 1.4rem 0.7rem 0; }
 .ox-list li::before { left: auto; right: 0.2rem; }
-.ox-confidence { align-items: flex-start; }
-.ox-metric-value { direction: rtl; }
+.ox-tech b, .ox-tech small { text-align: right; }
 </style>
         """,
         unsafe_allow_html=True,
@@ -646,56 +787,19 @@ md(
 # Incident picker
 # ---------------------------------------------------------------------
 
-@st.cache_data(ttl=300, show_spinner=False)
-def load_incidents():
-    """
-    Ask the API for the list of incidents (GET /incidents).
-    Accepts either a list or {"incidents": [...]} where each item has
-    "incident_id" (or "id") and an optional "title".
-    Raises on any problem so failures are never cached.
-    """
-    response = requests.get(f"{API_URL}/incidents", timeout=8)
-    response.raise_for_status()
-    payload = response.json()
-    rows = payload.get("incidents", []) if isinstance(payload, dict) else payload
-    found = {}
-    for row in rows:
-        incident_key = row.get("incident_id", row.get("id"))
-        if incident_key is not None:
-            found[int(incident_key)] = row.get("title") or ""
-    if not found:
-        raise ValueError("no incidents")
-    return found
-
-
-try:
-    available_incidents = load_incidents()
-except Exception:
-    available_incidents = {}
-
-
 with st.container(border=True):
     col_input, col_button = st.columns([1.2, 1], vertical_alignment="bottom")
 
     with col_input:
-        if available_incidents:
-            incident_id = st.selectbox(
-                t("choose_incident"),
-                options=sorted(available_incidents.keys()),
-                format_func=lambda n: t(
-                    "incident_item",
-                    n=n,
-                    title=dyn(available_incidents[n]) or "",
-                ).rstrip(": "),
-            )
-        else:
-            incident_id = st.number_input(
-                t("incident_number"),
-                min_value=2,
-                value=2,
-                step=1,
-                help=t("incident_help"),
-            )
+        incident_id = st.selectbox(
+            t("choose_incident"),
+            options=list(INCIDENT_NAMES.keys()),
+            format_func=lambda n: t(
+                "incident_item",
+                n=n,
+                title=INCIDENT_NAMES[n][1 if IS_AR else 0],
+            ),
+        )
 
     with col_button:
         run_investigation = st.button(
@@ -786,6 +890,18 @@ if not result:
 
 data = result["data"]
 
+# Arabic: translate the free-text parts of the answer (cached per text).
+translation_state = "none"
+if IS_AR:
+    pending = collect_server_texts(data)
+    if pending:
+        try:
+            with st.spinner(t("translating")):
+                RUNTIME_TR.update(translate_to_arabic(tuple(pending)))
+            translation_state = "ok"
+        except Exception:
+            translation_state = "failed"
+
 try:
     incident = data["incident"]
     decision = data["decision"]
@@ -806,8 +922,10 @@ try:
 
     section(t("result"), t("result_sub", n=result["id"]))
 
-    if IS_AR:
+    if IS_AR and translation_state == "failed":
         md(f"<div class='ox-note'>{esc(t('ar_note'))}</div>")
+    elif IS_AR and translation_state == "ok":
+        md(f"<div class='ox-note'>{esc(t('tr_note'))}</div>")
 
     md(
         f"""
