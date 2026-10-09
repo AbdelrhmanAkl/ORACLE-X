@@ -437,29 +437,52 @@ st.markdown(
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --ink: #12141c;
-    --ink-2: #454a58;
-    --muted: #7a8090;
-    --line: #e8eaf0;
-    --line-2: #d9dce5;
-    --bg: #ffffff;
-    --soft: #f6f7fa;
-    --accent: #3555f0;
-    --accent-soft: #eef1ff;
-    --good: #12805c;   --good-bg: #e8f6f0;
-    --warn: #a8620a;   --warn-bg: #fdf3e2;
-    --bad: #c23b3b;    --bad-bg: #fdecec;
-    --info: #3555f0;   --info-bg: #eef1ff;
-    --neutral: #5b6070; --neutral-bg: #f1f2f6;
-    --r-sm: 10px;
-    --r-lg: 20px;
+    /* text */
+    --ink: #1c1a3d;
+    --ink-2: #4b4872;
+    --muted: #84809f;
+    /* surfaces */
+    --line: #e8e5f6;
+    --line-2: #d8d3ee;
+    --bg: #faf9ff;
+    --soft: #f4f2ff;
+    /* brand: violet -> teal */
+    --accent: #6a5cf5;
+    --accent-2: #14b5c8;
+    --accent-soft: #eeebff;
+    --grad: linear-gradient(135deg, #6a5cf5 0%, #4f8cf7 55%, #14b5c8 100%);
+    --grad-soft: linear-gradient(135deg, #efecff 0%, #e6f4ff 55%, #e2f8f3 100%);
+    /* semantic */
+    --good: #0d9b78;   --good-bg: #e0f7ef;
+    --warn: #c0720a;   --warn-bg: #fff2d9;
+    --bad: #d63f5d;    --bad-bg: #ffe6ec;
+    --info: #5163f0;   --info-bg: #e8ecff;
+    --neutral: #67638c; --neutral-bg: #efedfa;
+    /* tints used by cards */
+    --tint-violet: #f0edff;
+    --tint-sky: #e5f3ff;
+    --tint-mint: #e1f8f1;
+    --tint-peach: #fff0e3;
+    --tint-rose: #ffe9f0;
+    --shadow-sm: 0 1px 2px rgba(60, 50, 140, 0.05), 0 8px 24px -14px rgba(60, 50, 140, 0.18);
+    --shadow-lg: 0 2px 4px rgba(60, 50, 140, 0.04), 0 28px 56px -28px rgba(80, 66, 200, 0.32);
+    --r-sm: 12px;
+    --r-lg: 22px;
 }
 
 html, body, .stApp, .stMarkdown, button, input, textarea,
 [data-baseweb="tab"], [data-baseweb="select"], [data-testid="stNumberInput"] {
     font-family: 'Plus Jakarta Sans', 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
-.stApp { background: var(--bg); color: var(--ink); }
+.stApp {
+    color: var(--ink);
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(900px 520px at 100% -8%, rgba(124, 108, 255, 0.16), transparent 62%),
+        radial-gradient(760px 480px at -6% 4%, rgba(20, 181, 200, 0.13), transparent 60%),
+        radial-gradient(900px 560px at 50% 112%, rgba(255, 150, 120, 0.12), transparent 62%);
+    background-attachment: fixed;
+}
 [data-testid="stHeader"] { background: transparent; }
 #MainMenu, footer { visibility: hidden; }
 .block-container { max-width: 1080px; padding: 2.2rem 1.6rem 5rem 1.6rem; }
@@ -467,36 +490,44 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 
 .ox-top { display: flex; align-items: center; gap: 0.7rem; padding-bottom: 0.4rem; }
 .ox-logo {
-    width: 38px; height: 38px; border-radius: 11px;
-    background: var(--ink); color: #fff;
+    width: 40px; height: 40px; border-radius: 13px;
+    background: var(--grad); color: #fff;
     display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    box-shadow: 0 10px 22px -10px rgba(106, 92, 245, 0.7);
 }
 .ox-brand-name { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--ink); }
 .ox-brand-tag { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
 
 /* language switch */
 [data-testid="stRadio"] [role="radiogroup"] {
-    gap: 0.3rem; background: var(--soft); border: 1px solid var(--line);
-    border-radius: 999px; padding: 0.2rem; width: fit-content;
+    gap: 0.3rem; background: rgba(255, 255, 255, 0.75); border: 1px solid var(--line);
+    border-radius: 999px; padding: 0.22rem; width: fit-content;
+    box-shadow: var(--shadow-sm); backdrop-filter: blur(8px);
 }
-[data-testid="stRadio"] label { padding: 0.25rem 0.8rem; border-radius: 999px; margin: 0; }
+[data-testid="stRadio"] label { padding: 0.28rem 0.9rem; border-radius: 999px; margin: 0; transition: background 0.2s ease; }
 [data-testid="stRadio"] label p { font-size: 0.82rem; font-weight: 600; color: var(--ink-2); }
-[data-testid="stRadio"] label:has(input:checked) { background: #fff; box-shadow: 0 1px 3px rgba(18,20,28,0.12); }
-[data-testid="stRadio"] label:has(input:checked) p { color: var(--ink); }
+[data-testid="stRadio"] label:has(input:checked) { background: var(--grad); box-shadow: 0 6px 14px -6px rgba(106, 92, 245, 0.6); }
+[data-testid="stRadio"] label:has(input:checked) p { color: #fff; }
 [data-testid="stRadio"] label > div:first-child { display: none; }
 
 .ox-intro { padding: 1.4rem 0 0.4rem 0; }
 .ox-intro h1 {
     font-size: 2.7rem; line-height: 1.15; font-weight: 800;
-    letter-spacing: -0.03em; color: var(--ink); margin: 0; padding: 0;
+    letter-spacing: -0.03em; margin: 0; padding: 0;
+    color: var(--ink);
+    background: linear-gradient(120deg, #1c1a3d 0%, #3b3a9e 55%, #0f8fa3 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 .ox-intro p { max-width: 640px; margin: 0.9rem 0 0 0; font-size: 1.02rem; line-height: 1.7; color: var(--ink-2); }
 
 [data-testid="stVerticalBlockBorderWrapper"] {
-    border: 1px solid var(--line) !important;
+    border: 1px solid rgba(216, 211, 238, 0.9) !important;
     border-radius: var(--r-lg) !important;
-    background: var(--soft);
-    padding: 0.4rem 0.5rem;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    padding: 0.5rem 0.6rem;
 }
 [data-testid="stNumberInput"] label p, [data-testid="stSelectbox"] label p {
     font-size: 0.85rem; font-weight: 600; color: var(--ink);
@@ -506,18 +537,32 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 [data-testid="stNumberInput"] button { background: #fff; color: var(--ink-2); }
 [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background: #fff; border-radius: var(--r-sm); border: 1px solid var(--line-2); min-height: 44px; font-weight: 600;
+    color: var(--ink); transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div:hover,
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within {
+    border-color: var(--accent); box-shadow: 0 0 0 4px rgba(106, 92, 245, 0.14);
 }
 .stButton > button {
     min-height: 46px; border-radius: var(--r-sm);
-    background: var(--accent); border: 1px solid var(--accent);
-    color: #fff; font-weight: 700; font-size: 0.95rem; transition: background 0.15s ease;
+    background: var(--grad); border: none;
+    color: #fff; font-weight: 700; font-size: 0.95rem;
+    box-shadow: 0 14px 26px -14px rgba(86, 80, 240, 0.85);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 .stButton > button p { color: #fff !important; font-weight: 700; }
-.stButton > button:hover { background: #2a45d1; border-color: #2a45d1; color: #fff; }
-.stButton > button:focus-visible { outline: 3px solid #b9c5ff; outline-offset: 2px; }
+.stButton > button:hover {
+    color: #fff; filter: brightness(1.06); transform: translateY(-1px);
+    box-shadow: 0 18px 30px -14px rgba(86, 80, 240, 0.9);
+}
+.stButton > button:active { transform: translateY(0); }
+.stButton > button:focus-visible { outline: 3px solid #c3bcff; outline-offset: 2px; }
 
 .ox-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; margin-top: 0.4rem; }
-.ox-step { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.2rem 1.3rem; }
+.ox-step { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.2rem 1.3rem; box-shadow: var(--shadow-sm); }
+.ox-step:nth-child(1) { background: linear-gradient(160deg, var(--tint-violet), #fff 75%); }
+.ox-step:nth-child(2) { background: linear-gradient(160deg, var(--tint-sky), #fff 75%); }
+.ox-step:nth-child(3) { background: linear-gradient(160deg, var(--tint-mint), #fff 75%); }
 .ox-step b { display: block; font-size: 0.98rem; color: var(--ink); margin-bottom: 0.3rem; }
 .ox-step span { font-size: 0.88rem; line-height: 1.6; color: var(--ink-2); }
 
@@ -539,21 +584,41 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 .ox-chip.ox-neutral, .ox-delta.ox-neutral { background: var(--neutral-bg); color: var(--neutral); }
 
 .ox-verdict {
-    border: 1px solid var(--line); border-radius: 24px; padding: 2rem 2.1rem; background: #fff;
-    box-shadow: 0 1px 0 rgba(18, 20, 28, 0.02), 0 18px 40px -24px rgba(18, 20, 28, 0.18);
+    position: relative; overflow: hidden;
+    border: 1px solid var(--line); border-radius: 26px; padding: 2.1rem 2.1rem 2rem 2.1rem; background: #fff;
+    box-shadow: var(--shadow-lg);
 }
-.ox-incident-id { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.ox-verdict::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--grad);
+}
+.ox-incident-id { font-size: 0.85rem; font-weight: 600; color: var(--accent); }
 .ox-verdict-title { font-size: 1.9rem; line-height: 1.25; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); margin: 0.5rem 0 0 0; }
 .ox-verdict-sub { font-size: 1rem; line-height: 1.7; color: var(--ink-2); margin: 0.7rem 0 0 0; max-width: 720px; }
 .ox-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.3rem; }
 
-.ox-action { margin-top: 1.4rem; padding: 1.4rem 1.6rem; border-radius: var(--r-lg); background: var(--accent-soft); }
+.ox-action {
+    margin-top: 1.4rem; padding: 1.4rem 1.6rem; border-radius: var(--r-lg);
+    background: var(--grad-soft); border: 1px solid rgba(106, 92, 245, 0.14);
+}
 .ox-action-label { font-size: 0.85rem; font-weight: 700; color: var(--accent); }
 .ox-action-text { font-size: 1.3rem; line-height: 1.5; font-weight: 700; color: var(--ink); margin-top: 0.35rem; }
 .ox-action-why { font-size: 0.92rem; line-height: 1.7; color: var(--ink-2); margin-top: 0.7rem; }
 
 .ox-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem; }
-.ox-metric { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.2rem 1.25rem; background: #fff; }
+.ox-metric {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.2rem 1.25rem; background: #fff;
+    box-shadow: var(--shadow-sm);
+}
+.ox-metric::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--grad); }
+.ox-metric:nth-child(1) { background: linear-gradient(180deg, var(--tint-violet), #fff 62%); }
+.ox-metric:nth-child(2) { background: linear-gradient(180deg, var(--tint-mint), #fff 62%); }
+.ox-metric:nth-child(3) { background: linear-gradient(180deg, var(--tint-sky), #fff 62%); }
+.ox-metric:nth-child(4) { background: linear-gradient(180deg, var(--tint-peach), #fff 62%); }
+.ox-metric:nth-child(1)::before { background: linear-gradient(90deg, #6a5cf5, #9a8cff); }
+.ox-metric:nth-child(2)::before { background: linear-gradient(90deg, #0d9b78, #4fd1a8); }
+.ox-metric:nth-child(3)::before { background: linear-gradient(90deg, #3d8bf2, #14b5c8); }
+.ox-metric:nth-child(4)::before { background: linear-gradient(90deg, #f2994a, #f56e8a); }
 .ox-metric-label { font-size: 0.88rem; font-weight: 600; color: var(--ink-2); }
 .ox-metric-value { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); margin-top: 0.5rem; }
 .ox-metric-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin-top: 0.8rem; }
@@ -561,28 +626,39 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 .ox-note { font-size: 0.82rem; color: var(--muted); margin-top: 0.7rem; line-height: 1.6; }
 
 .ox-causes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
-.ox-cause { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.3rem 1.4rem; background: #fff; }
+.ox-cause {
+    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.3rem 1.4rem; background: #fff;
+    box-shadow: var(--shadow-sm);
+}
+.ox-cause:nth-child(4n+1) { background: linear-gradient(165deg, var(--tint-violet), #fff 55%); }
+.ox-cause:nth-child(4n+2) { background: linear-gradient(165deg, var(--tint-sky), #fff 55%); }
+.ox-cause:nth-child(4n+3) { background: linear-gradient(165deg, var(--tint-mint), #fff 55%); }
+.ox-cause:nth-child(4n+4) { background: linear-gradient(165deg, var(--tint-peach), #fff 55%); }
 .ox-cause-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .ox-cause-title { font-size: 1.05rem; font-weight: 750; color: var(--ink); }
 .ox-confidence { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .ox-meter { display: flex; gap: 3px; }
-.ox-meter b { width: 20px; height: 6px; border-radius: 3px; background: var(--line); display: block; }
-.ox-meter b.ox-on.ox-good { background: var(--good); }
-.ox-meter b.ox-on.ox-warn { background: #e0a23b; }
-.ox-meter b.ox-on.ox-bad  { background: var(--bad); }
+.ox-meter b { width: 20px; height: 6px; border-radius: 3px; background: #e3e0f3; display: block; }
+.ox-meter b.ox-on.ox-good { background: linear-gradient(90deg, #0d9b78, #4fd1a8); }
+.ox-meter b.ox-on.ox-warn { background: linear-gradient(90deg, #f0a93b, #f7c76a); }
+.ox-meter b.ox-on.ox-bad  { background: linear-gradient(90deg, #d63f5d, #f27a92); }
 .ox-cause-block { margin-top: 1rem; }
 .ox-cause-block b { display: block; font-size: 0.8rem; font-weight: 700; color: var(--ink); margin-bottom: 0.2rem; }
 .ox-cause-block span { font-size: 0.88rem; line-height: 1.6; color: var(--ink-2); }
 .ox-cause-type { margin-top: 1rem; }
 
-.ox-plain { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.5rem 1.7rem; background: var(--soft); }
+.ox-plain {
+    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.5rem 1.7rem;
+    background: var(--grad-soft); box-shadow: var(--shadow-sm);
+}
 .ox-plain p { font-size: 1.02rem; line-height: 1.85; color: var(--ink); margin: 0; }
 .ox-plain small { display: block; margin-top: 1rem; font-size: 0.8rem; color: var(--muted); }
 
 [data-baseweb="tab-list"] { gap: 0.4rem; border-bottom: 1px solid var(--line); }
 [data-baseweb="tab"] { height: 44px; padding: 0 0.9rem; font-weight: 600; color: var(--muted); background: transparent; }
-[data-baseweb="tab"][aria-selected="true"] { color: var(--ink); }
-[data-baseweb="tab-highlight"] { background: var(--ink); height: 2px; }
+[data-baseweb="tab"]:hover { color: var(--accent); }
+[data-baseweb="tab"][aria-selected="true"] { color: var(--accent); }
+[data-baseweb="tab-highlight"] { background: var(--grad); height: 3px; border-radius: 3px; }
 [data-baseweb="tab-border"] { display: none; }
 
 .ox-list { margin: 0.6rem 0 0 0; padding: 0; list-style: none; }
@@ -591,29 +667,36 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
     font-size: 0.95rem; line-height: 1.7; color: var(--ink-2);
 }
 .ox-list li:last-child { border-bottom: none; }
-.ox-list li::before { content: ""; position: absolute; left: 0.2rem; top: 1.3rem; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.ox-list li::before { content: ""; position: absolute; left: 0.2rem; top: 1.3rem; width: 7px; height: 7px; border-radius: 50%; background: var(--grad); }
 .ox-empty-line { padding: 1rem 0; font-size: 0.92rem; color: var(--muted); }
 
 .ox-sources { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; margin-top: 0.8rem; }
-.ox-source { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 0.8rem 1rem; }
+.ox-source {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    border: 1px solid var(--line); border-radius: var(--r-sm); padding: 0.8rem 1rem; background: rgba(255, 255, 255, 0.85);
+}
 .ox-source span { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
 
 .ox-tech { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; margin-top: 0.8rem; }
-.ox-tech div { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 0.9rem 1rem; }
+.ox-tech div { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 0.9rem 1rem; background: rgba(255, 255, 255, 0.85); }
 .ox-tech small { display: block; font-size: 0.78rem; color: var(--muted); font-weight: 600; }
 .ox-tech b { display: block; font-size: 0.95rem; color: var(--ink); margin-top: 0.25rem; word-break: break-word; }
-.ox-callout { margin-top: 0.9rem; padding: 1rem 1.2rem; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--ink-2); font-size: 0.9rem; line-height: 1.7; }
+.ox-callout { margin-top: 0.9rem; padding: 1rem 1.2rem; border-radius: var(--r-sm); background: var(--grad-soft); color: var(--ink-2); font-size: 0.9rem; line-height: 1.7; }
 
 .ox-footer { margin-top: 2.5rem; padding-top: 1.4rem; border-top: 1px solid var(--line); font-size: 0.82rem; line-height: 1.75; color: var(--muted); max-width: 760px; }
 
 [data-testid="stAlert"] { border-radius: var(--r-sm); }
 
+@media (prefers-reduced-motion: reduce) {
+    .stButton > button, [data-testid="stRadio"] label { transition: none; }
+    .stButton > button:hover { transform: none; }
+}
 @media (max-width: 900px) {
     .block-container { padding: 1.2rem 1rem 4rem 1rem; }
     .ox-intro h1 { font-size: 2rem; }
     .ox-metrics { grid-template-columns: repeat(2, 1fr); }
     .ox-causes, .ox-sources, .ox-tech, .ox-steps { grid-template-columns: 1fr; }
-    .ox-verdict { padding: 1.4rem 1.3rem; }
+    .ox-verdict { padding: 1.5rem 1.3rem; }
     .ox-verdict-title { font-size: 1.5rem; }
 }
 @media (max-width: 520px) {
@@ -647,6 +730,7 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 [data-testid="stRadio"] [role="radiogroup"] { margin-inline-start: 0; }
 .stButton > button { text-align: center !important; }
 .ox-intro h1, .ox-verdict-title, .ox-section h3 { letter-spacing: 0; }
+.ox-intro h1 { line-height: 1.45; padding-bottom: 0.15em; }
 .ox-list li { padding: 0.7rem 1.4rem 0.7rem 0; }
 .ox-list li::before { left: auto; right: 0.2rem; }
 .ox-tech b, .ox-tech small { text-align: right; }
