@@ -31,17 +31,22 @@
 - [Live Demo](#live-demo)
 - [Key Capabilities](#key-capabilities)
 - [Decision Integrity](#decision-integrity)
+- [How It Works](#how-it-works)
 - [Architecture](#architecture)
+- [Design Decisions](#design-decisions)
 - [Example Investigation](#example-investigation)
 - [Provenance Model](#provenance-model)
 - [Arabic and English Support](#arabic-and-english-support)
+- [Technology Stack](#technology-stack)
 - [API Reference](#api-reference)
+- [API Response Example](#api-response-example)
 - [Deployment](#deployment)
 - [Run Locally](#run-locally)
 - [Configuration](#configuration)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Historical Dataset](#historical-dataset)
+- [Detection Rule](#detection-rule)
 - [Limitations and Responsible Use](#limitations-and-responsible-use)
 - [Roadmap](#roadmap)
 - [Author](#author)
@@ -63,6 +68,7 @@ It pairs a **Streamlit executive dashboard** with a **FastAPI backend** and **SQ
 | Executive dashboard (Streamlit) | [oracle-x.streamlit.app](https://oracle-x.streamlit.app/) |
 | Interactive API docs (Swagger) | [oracle-x.fastapicloud.dev/docs](https://oracle-x.fastapicloud.dev/docs) |
 | Backend base URL | [oracle-x.fastapicloud.dev](https://oracle-x.fastapicloud.dev/) |
+| Deployment dashboard | [FastAPI Cloud deployments](https://dashboard.fastapicloud.com/abdoakl441-562425d8/apps/oracle-x/deployments) |
 | Source code | [github.com/AbdelrhmanAkl/ORACLE-X](https://github.com/AbdelrhmanAkl/ORACLE-X) |
 
 Quick check that the backend is up:
@@ -103,6 +109,34 @@ The workflow separates responsibilities so that no single component can silently
 
 The LLM is **not** an authority for business metrics, anomaly detection, root-cause facts, validation, simulation state, or historical calculations. Each investigation reports flags confirming this: `decision_modified`, `rules_modified`, `thresholds_modified`, and `causal_claims_generated` are all `false`.
 
+## How It Works
+
+This walkthrough follows **Incident #2** from detection to the executive summary, using the scenario values shown in [Example Investigation](#example-investigation).
+
+**1. Build the business state.** Historical Olist data is aggregated into business signals: orders, revenue, review score, and inventory coverage.
+
+**2. Apply a scenario.** The scenario engine applies a controlled change. For Incident #2, demand rises by 25.0%, which pushes inventory coverage down by 34.4% to 9.18 days.
+
+**3. Evaluate the detection rule.** The `DEMAND_SUPPLY_IMBALANCE` rule checks three conditions, and all must hold:
+
+| Condition | Threshold | Incident #2 | Met |
+| --- | --- | --- | --- |
+| Demand increase | at least 15% | +25.0% | Yes |
+| Inventory coverage decline | at least 20% | -34.4% | Yes |
+| Current inventory coverage | 10 days or less | 9.18 days | Yes |
+
+**4. Investigate.** The investigation engine gathers evidence across the available signals and records it in one investigation.
+
+**5. Rank candidate causes.** Root-cause analysis ranks candidate factors and attaches confidence limits. It does not claim proven causality.
+
+**6. Generate a decision.** Business logic proposes an operational decision (here, prioritize inventory protection and monitor demand and supplier conditions).
+
+**7. Validate independently.** A separate validation stage checks the decision. Only a decision that passes (`VALID`) is stored in decision memory.
+
+**8. Interpret for executives.** The optional LLM layer reads the finished result and writes a plain-language explanation. It cannot change the decision, rules, or thresholds.
+
+**9. Deliver.** The result is served by the FastAPI backend and shown in the Streamlit dashboard, in English or Arabic.
+
 ## Architecture
 
 ```mermaid
@@ -135,6 +169,21 @@ flowchart LR
 ```
 
 The Streamlit app holds no LLM credentials. The backend owns the Groq key and performs both interpretation and translation.
+
+## Design Decisions
+
+| Decision | Why |
+| --- | --- |
+| **The LLM is read-only** | Business decisions must be reproducible and auditable. A language model can vary between runs, so it explains results but never produces or changes them. |
+| **Deterministic, versioned detection rules** | Explicit thresholds make it clear why an incident fired, and versioning plus duplicate prevention keeps results stable across reruns. |
+| **Independent validation stage** | The component that proposes a decision should not be the one that approves it. Separating the two catches faulty decisions before they reach memory. |
+| **Provenance labels on every figure** | Observed data, model-derived values, and simulated changes can look identical in a dashboard. Labels stop a scenario number from being mistaken for a real one. |
+| **RCA reports candidates, not causes** | Correlated signals do not prove causality. The system states confidence limits instead of overclaiming. |
+| **Insufficient-evidence reporting** | When there are too few observed outcomes, the learning layer says so rather than producing misleading adaptation signals. |
+| **Backend-owned API key** | The Groq key lives only on the backend. The Streamlit app carries no credentials and cannot leak one. |
+| **Translation guarded by number checks** | A translated sentence that changes any figure is discarded and the English original is kept, so translation can never alter a metric. |
+| **Graceful LLM failure** | If the LLM or translation is unavailable, the deterministic investigation still completes and the response reports the failure status. |
+| **SQLite storage** | A single-file database keeps the prototype simple to deploy and reproduce. A production deployment would likely move to a managed database. |
 
 ## Example Investigation
 
@@ -198,6 +247,21 @@ How translation is kept safe:
 
 The translation logic lives in `src/intelligence/summary_translator.py` and runs entirely on the backend.
 
+## Technology Stack
+
+| Layer | Technology |
+| --- | --- |
+| Language | Python |
+| API | FastAPI |
+| Executive interface | Streamlit |
+| Storage | SQLite |
+| Data processing | Pandas, NumPy |
+| HTTP communication | Requests, REST JSON |
+| LLM integration | Groq Python SDK |
+| Configuration | Environment variables, `python-dotenv` |
+| Testing | pytest |
+| Hosting | FastAPI Cloud (backend), Streamlit Community Cloud (dashboard) |
+
 ## API Reference
 
 | Method | Endpoint | Purpose |
@@ -214,6 +278,52 @@ The live [Swagger UI](https://oracle-x.fastapicloud.dev/docs) is the source of t
 ```bash
 curl -X POST "https://oracle-x.fastapicloud.dev/investigate/2"
 ```
+
+## API Response Example
+
+The summary endpoint returns the investigation result as JSON. The example below is **abridged and illustrative**: it shows the shape of the fields documented in this README, with values from the Incident #2 scenario. Field names and nesting may differ slightly, so use the live [Swagger UI](https://oracle-x.fastapicloud.dev/docs) or a real call as the source of truth.
+
+```bash
+curl "https://oracle-x.fastapicloud.dev/investigate/2/summary?lang=en"
+```
+
+```json
+{
+  "incident": {
+    "title": "Demand and Supply Imbalance Detected",
+    "severity": "HIGH"
+  },
+  "decision": {
+    "status": "ACTIONABLE",
+    "recommendation": "Prioritize inventory protection and monitor demand and supplier conditions."
+  },
+  "validation": {
+    "status": "VALID"
+  },
+  "scenario_metrics": {
+    "demand": { "change_pct": 25.0 }
+  },
+  "llm": {
+    "status": "INTERPRETATION_AVAILABLE",
+    "model": "openai/gpt-oss-120b",
+    "llm_used": true,
+    "decision_modified": false,
+    "rules_modified": false,
+    "thresholds_modified": false,
+    "causal_claims_generated": false
+  }
+}
+```
+
+With `?lang=ar`, the text fields come back in Arabic and the response also carries translation status:
+
+```json
+{
+  "translation": { "status": "OK" }
+}
+```
+
+If translation fails, the English response is returned unchanged with `"status": "FAILED"` and the reason.
 
 ## Deployment
 
