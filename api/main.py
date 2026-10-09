@@ -1,11 +1,33 @@
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 
 from src.investigation.investigation_engine import InvestigationEngine
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db_url = os.getenv("ORACLE_X_DB_URL")
+    db_sha256 = os.getenv("ORACLE_X_DB_SHA256")
+
+    if not db_url or not db_sha256:
+        raise RuntimeError(
+            "Missing required environment variables: "
+            "ORACLE_X_DB_URL and ORACLE_X_DB_SHA256."
+        )
+
+    from scripts.bootstrap_deployment_db import main as bootstrap_database
+
+    bootstrap_database()
+
+    yield
+
+
 app = FastAPI(
     title="ORACLE-X API",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 
@@ -34,11 +56,11 @@ def investigate(incident_id: int):
     except HTTPException:
         raise
 
-    except Exception as exc:
+    except Exception:
         raise HTTPException(
             status_code=500,
-            detail=f"Investigation failed: {exc}",
-        )
+            detail="Investigation failed due to an internal server error.",
+        ) from None
 
 
 @app.post("/investigate/{incident_id}/summary")
@@ -53,18 +75,17 @@ def investigate_summary(incident_id: int):
                 detail=f"Incident {incident_id} not found",
             )
 
-        decision = result.get("decision", {})
-        validation = result.get("decision_validation", {})
-        llm = result.get("llm_interpretation", {})
+        decision = result.get("decision") or {}
+        validation = result.get("decision_validation") or {}
+        llm = result.get("llm_interpretation") or {}
+        interpretation = llm.get("interpretation") or {}
 
-        interpretation = llm.get("interpretation", {})
+        evidence = result.get("evidence") or {}
+        detection = result.get("detection_evidence") or {}
 
-        evidence = result.get("evidence", {})
-        detection = result.get("detection_evidence", {})
-
-        financial = evidence.get("financial", {})
-        customer = evidence.get("customer", {})
-        supplier = evidence.get("supplier", {})
+        financial = evidence.get("financial") or {}
+        customer = evidence.get("customer") or {}
+        supplier = evidence.get("supplier") or {}
 
         scenario_metrics = {
             "demand": {
@@ -74,9 +95,7 @@ def investigate_summary(incident_id: int):
                 "simulated_daily_orders": detection.get(
                     "simulated_daily_orders"
                 ),
-                "change_pct": detection.get(
-                    "demand_change_pct"
-                ),
+                "change_pct": detection.get("demand_change_pct"),
             },
             "inventory": {
                 "baseline_cover_days": detection.get(
@@ -96,15 +115,9 @@ def investigate_summary(incident_id: int):
                 "current_daily_revenue": financial.get(
                     "current_daily_revenue"
                 ),
-                "baseline_aov": financial.get(
-                    "baseline_aov"
-                ),
-                "current_aov": financial.get(
-                    "current_aov"
-                ),
-                "change_pct": financial.get(
-                    "revenue_change_pct"
-                ),
+                "baseline_aov": financial.get("baseline_aov"),
+                "current_aov": financial.get("current_aov"),
+                "change_pct": financial.get("revenue_change_pct"),
             },
             "customer": {
                 "baseline_review_score": customer.get(
@@ -113,100 +126,62 @@ def investigate_summary(incident_id: int):
                 "current_review_score": customer.get(
                     "current_review_score"
                 ),
-                "change": customer.get(
-                    "review_score_change"
-                ),
-                "state": customer.get(
-                    "customer_state"
-                ),
+                "change": customer.get("review_score_change"),
+                "state": customer.get("customer_state"),
             },
             "supplier": {
-                "baseline_risk": supplier.get(
-                    "baseline_seller_risk"
-                ),
-                "current_risk": supplier.get(
-                    "current_seller_risk"
-                ),
+                "baseline_risk": supplier.get("baseline_seller_risk"),
+                "current_risk": supplier.get("current_seller_risk"),
                 "pressure_change": supplier.get(
                     "supplier_pressure_change"
                 ),
-                "state": supplier.get(
-                    "supplier_state"
-                ),
+                "state": supplier.get("supplier_state"),
             },
         }
 
         return {
-            "investigation_id": result.get(
-                "investigation_id"
-            ),
-
-            "incident": result.get(
-                "incident"
-            ),
-
+            "investigation_id": result.get("investigation_id"),
+            "incident": result.get("incident"),
             "decision": {
-                "status": decision.get(
-                    "decision_status"
-                ),
-                "recommended_action": decision.get(
-                    "recommended_action"
-                ),
-                "rationale": decision.get(
-                    "rationale"
-                ),
+                "status": decision.get("decision_status"),
+                "recommended_action": decision.get("recommended_action"),
+                "rationale": decision.get("rationale"),
             },
-
             "validation": {
-                "status": validation.get(
-                    "validation_status"
-                ),
+                "status": validation.get("validation_status"),
             },
-
             "scenario_metrics": scenario_metrics,
-
-            "root_cause_analysis": result.get(
-                "root_cause_analysis",
-                {},
+            "root_cause_analysis": (
+                result.get("root_cause_analysis") or {}
             ),
-
             "llm_interpretation": {
-                "status": llm.get(
-                    "interpretation_status"
-                ),
-                "model": llm.get(
-                    "model"
-                ),
+                "status": llm.get("interpretation_status"),
+                "model": llm.get("model"),
                 "executive_summary": interpretation.get(
                     "executive_summary"
                 ),
                 "key_observations": interpretation.get(
-                    "key_observations",
-                    [],
-                ),
-                "uncertainty": interpretation.get(
-                    "uncertainty",
-                    [],
-                ),
+                    "key_observations"
+                ) or [],
+                "uncertainty": interpretation.get("uncertainty") or [],
                 "unresolved_questions": interpretation.get(
-                    "unresolved_questions",
-                    [],
-                ),
+                    "unresolved_questions"
+                ) or [],
             },
-
-            "provenance": result.get(
-                "provenance"
-            ),
+            "provenance": result.get("provenance"),
         }
 
     except HTTPException:
         raise
 
-    except Exception as exc:
+    except Exception:
         raise HTTPException(
             status_code=500,
-            detail=f"Investigation summary failed: {exc}",
-        )
+            detail=(
+                "Investigation summary failed due to an internal "
+                "server error."
+            ),
+        ) from None
 
 
 @app.get("/investigate/{incident_id}/summary")
