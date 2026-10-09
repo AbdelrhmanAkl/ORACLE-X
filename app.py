@@ -5,7 +5,10 @@ import requests
 import streamlit as st
 
 
-API_URL = os.getenv("ORACLE_X_API_URL", "http://127.0.0.1:8000").rstrip("/")
+API_URL = os.getenv(
+    "ORACLE_X_API_URL",
+    "https://oracle-x.fastapicloud.dev",
+).rstrip("/")
 
 # ---------------------------------------------------------------------
 # Page Configuration
