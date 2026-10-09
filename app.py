@@ -1,5 +1,4 @@
 import html
-import json
 import os
 
 import requests
@@ -181,7 +180,7 @@ STR = {
         "hist_used": "استخدام بيانات تاريخية",
         "tech_callout": "الذكاء الاصطناعي يشرح فقط نتائج تم إنتاجها مسبقًا. أما الحقائق والتوصية والتحقق منها فتحددها قواعد العمل.",
         "footer": "القرارات تنتجها وتتحقق منها قواعد عمل ثابتة. المدخلات المحاكاة موسومة دائمًا، والقيم التقديرية قابلة للتتبع، وتحليل الأسباب لا يدّعي يقينًا أكثر مما تسمح به الأدلة. ويقتصر دور الذكاء الاصطناعي على شرح النتائج.",
-        "ar_note": "بعض النصوص التفصيلية القادمة من الخادم قد تظهر بالإنجليزية لأن الترجمة التلقائية غير مفعّلة.",
+        "ar_note": "تعذّرت ترجمة بعض النصوص التفصيلية، لذلك قد تظهر بالإنجليزية.",
         "translating": "جارٍ الترجمة...",
         "tr_note": "تمت ترجمة نصوص النتائج تلقائيًا بالذكاء الاصطناعي، وقد تحتوي على فروق بسيطة عن الأصل الإنجليزي.",
     },
@@ -312,118 +311,14 @@ def esc(value):
     return html.escape(str(value))
 
 
-RUNTIME_TR = {}  # filled per run with automatic Arabic translations
-
-
 def dyn(value):
-    """Return the Arabic version of a server text when one is available."""
+    """
+    Offline fallback: if the backend did not translate a fixed sentence
+    (for example an older backend without ?lang=ar), use the built-in Arabic.
+    """
     if IS_AR and isinstance(value, str):
-        key = value.strip()
-        return DYN_AR.get(key) or RUNTIME_TR.get(key) or value
+        return DYN_AR.get(value.strip(), value)
     return value
-
-
-GROQ_MODEL = os.getenv("ORACLE_X_TRANSLATE_MODEL", "openai/gpt-oss-120b")
-
-
-def get_groq_key():
-    """Read the Groq key from Streamlit secrets or the environment."""
-    try:
-        key = st.secrets.get("GROQ_API_KEY")
-    except Exception:
-        key = None
-    return key or os.getenv("GROQ_API_KEY")
-
-
-@st.cache_data(ttl=86400, show_spinner=False)
-def translate_to_arabic(texts):
-    """
-    Translate a tuple of English texts to Arabic with Groq.
-    Returns {english: arabic}. Raises on failure so failures are not cached.
-    """
-    key = get_groq_key()
-    if not key:
-        raise RuntimeError("GROQ_API_KEY is not configured")
-
-    system = (
-        "You translate business-analytics text from English to Modern Standard "
-        "Arabic. Keep every number, percentage, currency amount and incident id "
-        "exactly as written. Translate code identifiers such as HIGH_RISK, "
-        "AT_RISK or ELEVATED_PRESSURE into natural Arabic words as well. "
-        "Use clear, simple wording for non-technical readers and keep the "
-        "original meaning, including every statement of uncertainty. "
-        "The input is a JSON object that maps ids to English strings. Reply "
-        "with ONLY a JSON object with the same ids mapped to the Arabic "
-        "translations. Translate every single string. No markdown, no notes."
-    )
-    numbered = {str(i): text for i, text in enumerate(texts)}
-    response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={"Authorization": f"Bearer {key}"},
-        json={
-            "model": GROQ_MODEL,
-            "temperature": 0.1,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": json.dumps(numbered, ensure_ascii=False)},
-            ],
-        },
-        timeout=90,
-    )
-    response.raise_for_status()
-    content = response.json()["choices"][0]["message"]["content"]
-    start, end = content.find("{"), content.rfind("}")
-    if start == -1 or end == -1:
-        raise ValueError("translation reply was not JSON")
-    translated = json.loads(content[start:end + 1])
-
-    result = {}
-    for i, text in enumerate(texts):
-        value = translated.get(str(i))
-        if isinstance(value, str) and value.strip():
-            result[text] = value.strip()
-    if not result:
-        raise ValueError("translation reply was empty")
-    return result
-
-
-def collect_server_texts(payload):
-    """Every free-text string from the API that the page shows."""
-    found = []
-
-    def add(value):
-        if isinstance(value, str) and value.strip():
-            found.append(value.strip())
-
-    incident = payload.get("incident", {}) or {}
-    decision = payload.get("decision", {}) or {}
-    llm = payload.get("llm_interpretation", {}) or {}
-    rca = payload.get("root_cause_analysis", {}) or {}
-
-    for value in (
-        incident.get("title"),
-        incident.get("summary"),
-        decision.get("recommended_action"),
-        decision.get("rationale"),
-        llm.get("executive_summary"),
-    ):
-        add(value)
-
-    for name in ("key_observations", "uncertainty", "unresolved_questions"):
-        for value in llm.get(name, []) or []:
-            add(value)
-
-    for cause in rca.get("candidate_causes", []) or []:
-        for name in ("candidate_cause", "evidence_for", "evidence_against"):
-            add(cause.get(name))
-
-    # unique, keep order, skip what is already translated by hand
-    seen, todo = set(), []
-    for text in found:
-        if text not in seen and text not in DYN_AR:
-            seen.add(text)
-            todo.append(text)
-    return todo
 
 
 def bidi(value):
@@ -839,14 +734,15 @@ REQUIRED_SECTIONS = {
 }
 
 
-def fetch_investigation(display_number):
+def fetch_investigation(display_number, lang):
     """Call the API. Returns (data, error_message)."""
     incident_number = display_number + API_ID_OFFSET
     try:
         with st.spinner(t("spinner")):
             response = requests.get(
                 f"{API_URL}/investigate/{incident_number}/summary",
-                timeout=120,
+                params={"lang": lang},
+                timeout=180,
             )
     except requests.Timeout:
         return None, t("err_timeout")
@@ -873,12 +769,26 @@ def fetch_investigation(display_number):
 
 
 if run_investigation:
-    data, error = fetch_investigation(int(incident_id))
+    data, error = fetch_investigation(int(incident_id), LANG)
     if error:
         st.session_state.pop("result", None)
         st.error(error)
     else:
-        st.session_state["result"] = {"id": int(incident_id), "data": data}
+        st.session_state["result"] = {
+            "id": int(incident_id),
+            "data": data,
+            "lang": LANG,
+        }
+
+# Language switched after a result was shown: fetch it again in that language.
+_shown = st.session_state.get("result")
+if _shown and _shown.get("lang") != LANG and not run_investigation:
+    data, error = fetch_investigation(_shown["id"], LANG)
+    _shown["lang"] = LANG  # never loop on errors
+    if error:
+        st.error(error)
+    else:
+        _shown["data"] = data
 
 
 # ---------------------------------------------------------------------
@@ -907,20 +817,6 @@ if not result:
 
 data = result["data"]
 
-# Arabic: translate the free-text parts of the answer (cached per text).
-translation_state = "none"
-translation_error = ""
-if IS_AR:
-    pending = collect_server_texts(data)
-    if pending:
-        try:
-            with st.spinner(t("translating")):
-                RUNTIME_TR.update(translate_to_arabic(tuple(pending)))
-            translation_state = "ok"
-        except Exception as exc:
-            translation_state = "failed"
-            translation_error = str(exc)[:160]
-
 try:
     incident = data["incident"]
     decision = data["decision"]
@@ -941,12 +837,17 @@ try:
 
     section(t("result"), t("result_sub", n=result["id"]))
 
-    if IS_AR and translation_state == "failed":
-        md(f"<div class='ox-note'>{esc(t('ar_note'))}</div>")
-        if translation_error:
-            md(f"<div class='ox-note' dir='ltr' style='text-align:left'>Translation error: {esc(translation_error)}</div>")
-    elif IS_AR and translation_state == "ok":
-        md(f"<div class='ox-note'>{esc(t('tr_note'))}</div>")
+    if IS_AR:
+        info = data.get("translation") or {}
+        if info.get("status") == "OK":
+            md(f"<div class='ox-note'>{esc(t('tr_note'))}</div>")
+        else:
+            md(f"<div class='ox-note'>{esc(t('ar_note'))}</div>")
+            if info.get("reason"):
+                md(
+                    "<div class='ox-note' dir='ltr' style='text-align:left'>"
+                    f"Translation error: {esc(info.get('reason'))}</div>"
+                )
 
     md(
         f"""
