@@ -1,9 +1,13 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
 from src.investigation.investigation_engine import InvestigationEngine
+
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -17,9 +21,13 @@ async def lifespan(app: FastAPI):
             "ORACLE_X_DB_URL and ORACLE_X_DB_SHA256."
         )
 
-    from scripts.bootstrap_deployment_db import main as bootstrap_database
+    from scripts.bootstrap_deployment_db import (
+        main as bootstrap_database,
+    )
 
+    logger.info("Initializing deployment database.")
     bootstrap_database()
+    logger.info("Deployment database initialization completed.")
 
     yield
 
@@ -57,6 +65,10 @@ def investigate(incident_id: int):
         raise
 
     except Exception:
+        logger.exception(
+            "Investigation failed for incident_id=%s",
+            incident_id,
+        )
         raise HTTPException(
             status_code=500,
             detail="Investigation failed due to an internal server error.",
@@ -175,6 +187,10 @@ def investigate_summary(incident_id: int):
         raise
 
     except Exception:
+        logger.exception(
+            "Investigation summary failed for incident_id=%s",
+            incident_id,
+        )
         raise HTTPException(
             status_code=500,
             detail=(
