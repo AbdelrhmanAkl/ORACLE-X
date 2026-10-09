@@ -1,265 +1,146 @@
+<div align="center">
+
 # ORACLE-X
 
 ### Autonomous Enterprise Decision Engine
 
+**Evidence-driven business investigations and validated operational decisions — with deterministic logic at the core.**
+
+<p>
+  <a href="https://oracle-x.streamlit.app/"><strong>Open Live Dashboard</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://oracle-x.fastapicloud.dev/docs"><strong>Explore API Docs</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/AbdelrhmanAkl/ORACLE-X"><strong>View Repository</strong></a>
+</p>
+
 [![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![SQLite](https://img.shields.io/badge/Storage-SQLite-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Decision Integrity](https://img.shields.io/badge/Decision%20Integrity-Deterministic-2F6F44)](#decision-integrity)
 
-> **ORACLE-X** is a portfolio project focused on deterministic, evidence-driven decision engineering for business operations.
-
-
-
-ORACLE-X is a deterministic, evidence-driven enterprise decision engine designed to transform business signals into validated operational decisions.
-
-It combines historical business data, simulated business scenarios, anomaly detection, root-cause analysis, multi-agent reasoning, decision validation, outcome tracking, and optional LLM-based evidence interpretation.
-
-> **Design principle:** deterministic business logic owns the facts and decisions. The LLM is used only for interpretation and executive communication.
-
-## Contents
-
-- [What ORACLE-X Does](#what-oracle-x-does)
-- [Core Capabilities](#core-capabilities)
-- [Provenance Model](#provenance-model)
-- [Validation Example](#validation-example)
-- [Historical Business Dataset](#historical-business-dataset)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Tech Stack](#tech-stack)
-- [Local Setup](#local-setup)
-- [API](#api)
-- [Dashboard](#dashboard)
-- [Testing](#testing)
-- [Data & Repository Policy](#data--repository-policy)
-- [Design Principles](#design-principles)
-- [Current Limitations](#current-limitations)
-- [Roadmap](#roadmap)
-- [Project Status](#project-status)
-- [Author](#author)
-
+</div>
 
 ---
 
-## What ORACLE-X Does
+## Overview
 
-ORACLE-X follows a complete decision pipeline:
+ORACLE-X is an AI decision-intelligence prototype that investigates detected business conditions, assembles evidence, evaluates potential root causes, and generates decisions that pass through an independent validation stage. It combines a Streamlit executive dashboard with a FastAPI backend and SQLite-based storage.
 
-```text
-Business Data
-     ↓
-Business World / Current State
-     ↓
-Scenario Simulation
-     ↓
-Anomaly Detection
-     ↓
-Investigation
-     ↓
-Evidence Synthesis
-     ↓
-Root-Cause Analysis
-     ↓
-Multi-Agent Debate
-     ↓
-Decision Generation
-     ↓
-Decision Validation
-     ↓
-Decision Memory
-     ↓
-Outcome Tracking
-     ↓
-Learning Signals
-     ↓
-Adaptive Intelligence
-     ↓
-Optional LLM Interpretation
+The system is designed to make business investigations more traceable by distinguishing historical observations, model-derived metrics, simulated scenario changes, deterministic analysis, and generated language-model interpretations.
+
+> **Core principle:** deterministic business logic remains authoritative. The optional large language model (LLM) explains existing investigation results; it does not create or modify the authoritative decision, rules, or thresholds.
+
+## Try ORACLE-X
+
+| Resource | Description |
+| --- | --- |
+| [Live Streamlit dashboard](https://oracle-x.streamlit.app/) | Explore the executive-facing application. |
+| [Interactive API documentation](https://oracle-x.fastapicloud.dev/docs) | Inspect and try the deployed FastAPI endpoints. |
+| [Backend base URL](https://oracle-x.fastapicloud.dev/) | Access the hosted API service. |
+| [Deployment dashboard](https://dashboard.fastapicloud.com/abdoakl441-562425d8/apps/oracle-x/deployments) | View the backend deployment dashboard. |
+| [GitHub repository](https://github.com/AbdelrhmanAkl/ORACLE-X) | Browse the source code and project structure. |
+
+## Key Capabilities
+
+- **Business intelligence:** organizes business signals such as orders, revenue, customers, products, sellers, reviews, inventory, and operational activity.
+- **Scenario simulation:** evaluates controlled scenarios to explore how changes in demand, inventory, supply, and customer experience affect the investigation workflow.
+- **Deterministic anomaly detection:** applies explicit business rules to identify conditions that warrant investigation.
+- **Evidence-led investigation:** coordinates specialist analysis, evidence synthesis, and decision generation.
+- **Root-cause analysis:** ranks candidate factors while communicating uncertainty and evidence limitations instead of asserting unsupported causality.
+- **Decision validation:** validates generated decisions before they proceed into decision memory and outcome evaluation.
+- **Decision memory and learning signals:** stores validated decisions and evaluates available observed outcomes; the system can explicitly report when evidence is insufficient.
+- **Provenance and traceability:** distinguishes historical, model-derived, simulated, deterministic, and LLM-generated information.
+- **Optional LLM interpretation:** produces executive-friendly explanations of already-generated evidence through the Groq API.
+- **REST API and dashboard:** exposes investigation workflows through FastAPI and presents results through Streamlit.
+
+## Decision Integrity
+
+ORACLE-X separates its workflow into distinct responsibilities:
+
+1. **Business evidence** — historical data and scenario inputs.
+2. **Detection and investigation** — deterministic rules identify conditions and organize evidence.
+3. **Evidence synthesis and RCA** — candidate explanations are evaluated against available signals.
+4. **Decision generation** — business logic produces a proposed operational decision.
+5. **Independent validation** — a separate validation stage checks the generated decision.
+6. **Memory and outcome evaluation** — validated decisions and observed outcomes can inform learning signals.
+7. **LLM interpretation** — an optional read-only layer explains the existing result for executive review.
+
+The LLM is not the authority for business metrics, anomaly detection, root-cause facts, validation, simulation state, or historical calculations. It must not be described as proving causal relationships or changing business rules.
+
+## Example Investigation
+
+A demonstrated investigation for **Incident #2 — Demand and Supply Imbalance Detected** returned the following statuses:
+
+| Field | Demonstrated result |
+| --- | --- |
+| Severity | `HIGH` |
+| Decision status | `ACTIONABLE` |
+| Validation status | `VALID` |
+| LLM status | `INTERPRETATION_AVAILABLE` |
+| Interpretation model | `openai/gpt-oss-120b` |
+| Decision control | `READ-ONLY` |
+
+The investigation also reported `llm_used: true`, while `decision_modified`, `rules_modified`, `thresholds_modified`, and `causal_claims_generated` were all `false`.
+
+**Executive recommendation:** Prioritize inventory protection and monitor demand and supplier conditions.
+
+### Example scenario signals
+
+| Signal | Demonstrated value | Provenance |
+| --- | ---: | --- |
+| Daily orders | 338.30 | Scenario-driven |
+| Demand change | +25.0% | Simulated |
+| Inventory coverage | 9.18 days | Model-derived |
+| Inventory coverage change | -34.4% | Model-derived scenario indicator |
+| Daily revenue | $45,385.72 | Scenario-driven |
+| Revenue change | +25.0% | Simulated |
+| Customer review score | 3.95 | Scenario-driven |
+| Customer score change | -0.30 | Simulated |
+
+These values are from a **controlled scenario**, not verified real-time business operations. Inventory coverage is model-derived, and simulated supplier pressure is not proof of an actual supplier issue. RCA results identify candidate factors and confidence limitations; they do not establish causality.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Historical Business Data] --> B[Business Intelligence]
+    B --> C[Current Business State]
+    B --> D[Scenario Engine]
+    C --> E[Detection Engine]
+    D --> E
+    E --> F[Investigation Engine]
+    F --> G[Specialist Analysis and Evidence Synthesis]
+    G --> H[Evidence-Based Root-Cause Analysis]
+    H --> I[Decision Generation]
+    I --> J[Independent Decision Validation]
+    J --> K[Decision Memory and Outcome Evaluation]
+    K --> L[Learning Signals and Adaptive Intelligence]
+    J --> M[Read-Only LLM Interpretation]
+    M --> N[Executive Dashboard / API Consumers]
+    J --> N
 ```
 
-The system is designed to separate:
-
-- observed historical facts
-- deterministic model-derived metrics
-- simulated scenario changes
-- deterministic root-cause analysis
-- observed decision outcomes
-- LLM-generated interpretation
-
-This separation provides traceability and reduces the risk of allowing an LLM to invent business facts.
-
----
-
-## Core Capabilities
-
-### 1. Business Intelligence
-
-ORACLE-X builds a structured business view from historical data, including:
-
-- order activity
-- revenue
-- customers
-- products
-- sellers
-- reviews
-- inventory
-- seller risk
-- operational activity
-
-### 2. Scenario Simulation
-
-The simulation layer creates controlled business scenarios to test the decision engine.
-
-The current scenario library contains 18 scenarios, including:
-
-- Baseline Stable
-- Mild Demand Growth
-- Moderate Demand Increase
-- Inventory Pressure
-- Low Cover Only
-- Demand-Supply Imbalance
-- Strong Demand Shock
-- Severe Supply Shock
-- Extreme Demand Shock
-- Detection Boundary
-- Recovery
-- Inventory Recovery
-- Customer Experience Decline
-- Full Business Stress
-- Critical Inventory
-- Supplier and Customer Risk
-- Demand-Only Surge
-- Inventory-Only Critical
-
-Simulation data is explicitly treated as simulated rather than historical.
-
-### 3. Deterministic Anomaly Detection
-
-The current detection engine includes the:
-
-`DEMAND_SUPPLY_IMBALANCE`
-
-rule.
-
-The rule requires all of the following:
-
-- demand increase >= 15%
-- inventory cover decline >= 20%
-- current inventory cover <= 10 days
-
-The detector also maintains rule versioning and prevents duplicate detection for the same snapshot/rule/version combination.
-
-### 4. Investigation Engine
-
-The InvestigationEngine coordinates the full investigation workflow.
-
-It combines:
-
-- Finance Agent
-- Operations Agent
-- Risk Agent
-- Customer Agent
-- Evidence Synthesizer
-- Root Cause Analyzer
-- Debate Engine
-- Decision Engine
-- Decision Validator
-- Learning Engine
-- Decision Quality Evaluator
-- Adaptive Intelligence
-
-### 5. Root-Cause Analysis
-
-The deterministic RCA layer evaluates candidate causes including:
-
-1. Demand Surge
-2. Inventory Pressure
-3. Supplier Pressure
-4. Customer Experience Deterioration
-
-The system distinguishes evidence from interpretation and avoids unsupported causal certainty.
-
-### 6. Decision Validation
-
-Every generated decision passes through deterministic validation before it can enter the decision-memory and learning pipeline.
-
-A validated decision can then be:
-
-- persisted
-- evaluated
-- tracked
-- used to generate learning signals
-
-### 7. Decision Memory & Learning
-
-ORACLE-X stores validated decisions and their outcomes.
-
-The learning layer evaluates decision quality and extracts learning signals from observed outcomes.
-
-Adaptive intelligence remains read-only when learning data is insufficient rather than fabricating confidence.
-
-### 8. LLM Interpretation
-
-The LLM is deliberately constrained.
-
-It does **not** own:
-
-- business metrics
-- anomaly detection
-- root-cause facts
-- decision validation
-- simulation state
-- historical calculations
-
-Instead, it interprets already-produced evidence and generates executive-level explanations.
-
-Current implementation uses the Groq Python client and reads the API key from environment configuration.
-
----
+The diagram represents the documented logical workflow. The LLM is an interpretation layer, not a decision authority.
 
 ## Provenance Model
 
-ORACLE-X preserves the origin of important information.
+| Information type | Provenance label |
+| --- | --- |
+| Historical business data | `OBSERVED_HISTORICAL` |
+| Inventory level and coverage | `MODEL_DERIVED` |
+| Scenario changes | `SIMULATED` |
+| Root-cause analysis | `DETERMINISTIC_RCA` |
+| Learning signals | `DETERMINISTIC_OBSERVED_OUTCOMES` |
+| Adaptive intelligence | `DETERMINISTIC_READ_ONLY` |
+| LLM interpretation | `LLM_EVIDENCE_INTERPRETATION` |
 
-| Data / Result                | Provenance                        |
-| ---------------------------- | --------------------------------- |
-| Historical business data     | `OBSERVED_HISTORICAL`             |
-| Inventory level and coverage | `MODEL_DERIVED`                   |
-| Scenario changes             | `SIMULATED`                       |
-| Root-cause interpretation    | `DETERMINISTIC_RCA`               |
-| Learning signals             | `DETERMINISTIC_OBSERVED_OUTCOMES` |
-| Adaptive intelligence        | `DETERMINISTIC_READ_ONLY`         |
-| LLM interpretation           | `LLM_EVIDENCE_INTERPRETATION`     |
+Provenance labels help reviewers distinguish observations from calculations, scenario assumptions, deterministic conclusions, and generated explanations.
 
-This provenance model is a core trust mechanism of the system.
+## Historical Dataset
 
----
-
-## Validation Example
-
-The production system currently contains 7 retained incidents.
-
-The investigation API has been tested end-to-end against Incident `2`.
-
-The validated investigation produced:
-
-- investigation ID: `INV-2-7`
-- decision status: `ACTIONABLE`
-- decision validation: `VALID`
-- decision memory ID: `4`
-- learning status: `LEARNING_SIGNALS_EXTRACTED`
-- decision quality: `STRUCTURALLY_STRONG`
-- decision quality score: `1.0`
-
-Adaptive intelligence correctly reported insufficient learning data rather than producing an unsupported adaptive conclusion.
-
----
-
-## Historical Business Dataset
-
-The project uses the Brazilian E-Commerce Public Dataset by Olist as the historical business foundation.
-
-The analyzed historical period contains:
+The project uses the **Brazilian E-Commerce Public Dataset by Olist** as its historical business foundation. The supplied project documentation reports the following dataset-level counts:
 
 - 99,441 orders
 - 112,650 order items
@@ -267,97 +148,161 @@ The analyzed historical period contains:
 - 99,224 reviews
 - 23 seller states
 
-For the investigated August 2018 business window:
+For the documented August 2018 business window, the project reports 5,954 total orders, 5,855 delivered orders, 5,997 active customers, $798,785.87 in item revenue, a canonical average order value (AOV) of $134.16, an average review score of 4.25, 4,079 inventory products, and 14.00 days of inventory coverage.
 
-- 5,954 total orders
-- 5,855 delivered orders
-- 5,997 active customers
-- $798,785.87 item revenue
-- $134.16 canonical AOV
-- 4.25 average review score
-- 4,079 inventory products
-- 14.00 days inventory cover
+These are project-reported historical or derived figures, not live operational metrics. Raw source data is intentionally excluded from Git tracking.
 
-Raw source data is intentionally excluded from Git tracking.
+## Anomaly Detection Example
 
----
+The documented detection engine includes the `DEMAND_SUPPLY_IMBALANCE` rule. It requires all of the following conditions:
 
-## Architecture
+- Demand increase of at least 15%.
+- Inventory coverage decline of at least 20%.
+- Current inventory coverage of 10 days or less.
 
-```
-```
+The detector also documents rule versioning and prevention of duplicate detections for the same snapshot, rule, and version combination.
 
-```
-                    ┌─────────────────────┐
-                    │   Historical Data   │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Business Intelligence│
-                    └──────────┬──────────┘
-                               │
-                 ┌─────────────┴─────────────┐
-                 ▼                           ▼
-        ┌─────────────────┐        ┌─────────────────┐
-        │ Scenario Engine │        │ Current State   │
-        └────────┬────────┘        └────────┬────────┘
-                 │                           │
-                 └─────────────┬─────────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ Detection Engine    │
-                    └──────────┬──────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ Investigation Engine│
-                    └──────────┬──────────┘
-                               ▼
-              ┌─────────────────────────────────┐
-              │ Agents + Evidence + RCA + Debate│
-              └────────────────┬────────────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ Decision Engine     │
-                    └──────────┬──────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ Decision Validator  │
-                    └──────────┬──────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ Memory / Learning   │
-                    └──────────┬──────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ LLM Interpretation  │
-                    └─────────────────────┘
+## API Reference
+
+The deployed backend exposes these documented endpoints:
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | Health check |
+| `POST` | `/investigate/{incident_id}` | Run an incident investigation |
+| `POST` | `/investigate/{incident_id}/summary` | Generate an investigation summary |
+| `GET` | `/investigate/{incident_id}/summary` | Retrieve an investigation summary |
+
+The live [Swagger UI](https://oracle-x.fastapicloud.dev/docs) is the preferred reference for the current API behavior.
+
+### Example: Run an Investigation
+
+```bash
+curl -X POST "https://oracle-x.fastapicloud.dev/investigate/2"
 ```
 
----
+This example uses Incident `2`, which is referenced in the documented demonstration. Refer to the live API documentation for the current response schema and interactive testing.
+
+## Technology Stack
+
+- **Language:** Python
+- **API:** FastAPI
+- **Executive interface:** Streamlit
+- **Storage:** SQLite
+- **Data processing:** Pandas and NumPy
+- **HTTP communication:** Requests / REST JSON
+- **LLM integration:** Groq Python SDK
+- **Configuration:** Environment-based settings and `python-dotenv`
+
+## Run Locally
+
+The following commands reflect the local development workflow documented for the project. Review the repository files and configuration before running them in a fresh environment.
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/AbdelrhmanAkl/ORACLE-X.git
+cd ORACLE-X
+```
+
+### 2. Create and activate a virtual environment
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+```powershell
+pip install -r requirements.txt
+```
+
+### 4. Configure environment variables
+
+Set the server-side Groq API key for LLM interpretation. Do not commit credentials or paste them into logs.
+
+```dotenv
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+If using a local `.env` file, keep it out of version control. The repository documentation has referenced `.env.example`; check the current repository for its exact contents and required settings before copying it.
+
+For the Streamlit dashboard, `ORACLE_X_API_URL` can be used to configure the backend URL. For local development, the documented API URL is `http://127.0.0.1:8000`; the hosted backend base URL is `https://oracle-x.fastapicloud.dev`.
+
+### 5. Start the API
+
+```powershell
+uvicorn api.main:app --reload
+```
+
+The local API should be available at `http://127.0.0.1:8000`, with interactive documentation at `http://127.0.0.1:8000/docs`.
+
+### 6. Start the dashboard
+
+Open a second terminal in the project root, activate the same virtual environment, then run:
+
+```powershell
+streamlit run app.py
+```
+
+The dashboard uses the configured FastAPI URL. Set `ORACLE_X_API_URL` to the local API address when testing the local backend.
+
+> **Database note:** ORACLE-X uses SQLite, and deployment includes a database bootstrap process. The local database may be excluded from the repository. Confirm the current bootstrap instructions and required data files in the source before running investigations locally; do not assume that cloning the repository includes the populated database.
+
+## Tests and Verification
+
+The existing project documentation lists tests for adaptive intelligence and LLM interpretation. If those test files are present in the current checkout, run:
+
+```powershell
+pytest
+```
+
+The documented API smoke-test commands are:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+```powershell
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/investigate/2
+```
+
+A successful historical end-to-end demonstration is not a guarantee that every environment or deployment will produce the same results. Verify the current source, configuration, and live API before relying on the workflow.
+
+## Reliability, Limitations, and Responsible Use
+
+- **Scenario data is not live data.** Simulated values must not be presented as actual current business conditions.
+- **Derived metrics are not direct observations.** Inventory coverage and other calculated indicators depend on their underlying assumptions and data.
+- **RCA is evidence-constrained.** Candidate causes and confidence levels do not prove causality.
+- **The LLM is read-only.** Its role is to interpret existing evidence, not change the decision, business rules, or thresholds.
+- **Learning depends on outcomes.** Adaptive intelligence should report insufficient evidence when the number or quality of observed outcomes is inadequate.
+- **A portfolio prototype is not a guarantee of production readiness.** Organizations would need to assess authentication, authorization, monitoring, operational controls, data quality, and deployment requirements for their own use cases.
+
+## Roadmap
+
+Potential future improvements—not claims of currently implemented functionality—include:
+
+- Stronger authentication and authorization.
+- Expanded monitoring and observability.
+- Broader observed outcome datasets and decision-quality evaluation.
+- Automated data refresh pipelines.
+- CI/CD and deployment hardening.
+- More extensive automated integration tests.
 
 ## Project Structure
 
-```
-```
+The supplied project documentation describes the following main components. Confirm the current repository tree if it has changed.
 
-```
+```text
 ORACLE-X/
-│
 ├── api/
 │   └── main.py
-│
 ├── config/
 │   └── settings.py
-│
 ├── data/
-│   └── oracle_x.db              # local / ignored
-│
+│   └── oracle_x.db
 ├── legacy/
-│   ├── build_database.py
-│   ├── build_world.py
-│   └── investigate_incident.py
-│
 ├── src/
 │   ├── agents/
 │   ├── data/
@@ -368,375 +313,30 @@ ORACLE-X/
 │   ├── learning/
 │   ├── simulation/
 │   └── validation/
-│
 ├── tests/
-│   ├── test_adaptive_intelligence.py
-│   └── test_llm_interpreter.py
-│
 ├── app.py
-├── inspect_schema.py
 ├── requirements.txt
-├── .env.example
-└── .gitignore
+└── .env.example
 ```
 
----
-
-## Tech Stack
-
-- Python
-- FastAPI
-- Streamlit
-- SQLite
-- Pandas
-- NumPy
-- Requests
-- Groq Python SDK
-- python-dotenv
-
----
-
-## Local Setup
-
-### 1. Clone the repository
-
-```
-```
-
-```
-git clone <YOUR_REPOSITORY_URL>
-cd ORACLE-X
-```
-
-### 2. Create a virtual environment
-
-Windows PowerShell:
-
-```
-```
-
-```
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-### 3. Install dependencies
-
-```
-```
-
-```
-pip install -r requirements.txt
-```
-
-### 4. Configure environment variables
-
-Copy `.env.example` to `.env` and provide the required API key.
-
-Example:
-
-```
-```
-
-```
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-Never commit `.env`.
-
-### 5. Run the API
-
-```
-```
-
-```
-uvicorn api.main:app --reload
-```
-
-The API runs locally on:
-
-```
-```
-
-```
-http://127.0.0.1:8000
-```
-
-### 6. Run the dashboard
-
-In a second terminal:
-
-```
-```
-
-```
-streamlit run app.py
-```
-
-The Streamlit dashboard connects to the local FastAPI service at:
-
-```
-```
-
-```
-http://127.0.0.1:8000
-```
-
----
-
-## API
-
-The local API exposes the core investigation workflow through FastAPI.
-
-### Health Check
-
-```
-```
-
-```
-GET /health
-```
-
-Example:
-
-```
-```
-
-```
-Invoke-RestMethod http://127.0.0.1:8000/health
-```
-
-Expected response:
-
-```
-```
-
-```
-{
-  "status": "ok",
-  "service": "ORACLE-X API"
-}
-```
-
-### Investigate an Incident
-
-```
-```
-
-```
-POST /investigate/{incident_id}
-```
-
-Example:
-
-```
-```
-
-```
-Invoke-RestMethod -Method Post `
-  http://127.0.0.1:8000/investigate/2
-```
-
-### Investigation Summary
-
-```
-```
-
-```
-POST /investigate/{incident_id}/summary
-```
-
-### Read Investigation Summary
-
-```
-```
-
-```
-GET /investigate/{incident_id}/summary
-```
-
-Example:
-
-```
-```
-
-```
-Invoke-RestMethod `
-  http://127.0.0.1:8000/investigate/2/summary
-```
-
----
-
-## Dashboard
-
-The Streamlit dashboard provides an enterprise-style interface for reviewing:
-
-- business health
-- investigation results
-- decisions
-- validation
-- root causes
-- provenance
-- learning signals
-- LLM interpretation
-
-The dashboard currently expects the FastAPI service to be running locally on port `8000`.
-
----
-
-## Testing
-
-The repository includes tests for key intelligence components:
-
-```
-```
-
-```
-pytest
-```
-
-For API validation, start FastAPI and verify:
-
-```
-```
-
-```
-Invoke-RestMethod http://127.0.0.1:8000/health
-```
-
-Then execute an investigation:
-
-```
-```
-
-```
-Invoke-RestMethod -Method Post `
-  http://127.0.0.1:8000/investigate/2
-```
-
----
-
-## Data & Repository Policy
-
-Raw Olist CSV files are intentionally excluded from Git tracking because they are large and are not required to understand the source code.
-
-The production SQLite database is also excluded from Git tracking.
-
-This keeps the public repository focused on:
-
-- architecture
-- decision logic
-- investigation logic
-- simulation
-- learning
-- validation
-- API
-- dashboard
-- tests
-
-Local data can be restored separately when required.
-
----
-
-## Design Principles
-
-### Deterministic First
-
-Business facts and decision authority are implemented through deterministic Python and SQL logic.
-
-### Evidence Before Interpretation
-
-The system produces structured evidence before asking an LLM to explain it.
-
-### Provenance Everywhere
-
-Important outputs identify whether they are historical, derived, simulated, deterministic, or LLM-generated.
-
-### No Unsupported Causality
-
-The RCA layer distinguishes candidate explanations from proven causal relationships.
-
-### Fail Safely
-
-When evidence is insufficient, ORACLE-X prefers an explicit insufficient-evidence state instead of manufacturing confidence.
-
-### LLM as Interpreter
-
-The LLM improves explanation and executive communication without becoming the source of business truth.
-
----
-
-## Current Limitations
-
-ORACLE-X is currently a local portfolio implementation.
-
-The current Streamlit dashboard expects the FastAPI service to be available locally at `127.0.0.1:8000`.
-
-Adaptive intelligence also requires sufficient observed decision outcomes before it can provide stronger learned signals.
-
-The system should therefore be viewed as a decision-engineering prototype rather than a fully autonomous production enterprise platform.
-
----
-
-## Roadmap
-
-Potential next steps include:
-
-- production deployment architecture
-- hosted API and dashboard
-- stronger authentication and authorization
-- richer automated monitoring
-- broader outcome datasets
-- expanded decision-quality evaluation
-- stronger adaptive learning with sufficient outcomes
-- CI/CD
-- production observability
-- automated data refresh pipelines
-
----
-
-## Project Status
-
-ORACLE-X currently includes:
-
-- deterministic business intelligence
-- 18 simulation scenarios
-- anomaly detection
-- investigation orchestration
-- multi-agent analysis
-- evidence synthesis
-- deterministic root-cause analysis
-- decision generation
-- decision validation
-- decision memory
-- outcome tracking
-- learning signals
-- adaptive intelligence
-- optional LLM evidence interpretation
-- FastAPI API
-- Streamlit dashboard
-- automated tests
-
-The core investigation workflow has been validated end-to-end.
-
----
+The database file and raw source data may be local or ignored by Git and therefore may not appear in a clone.
 
 ## Author
 
-**Eng.Abdelrahman Akl**
+**Abdelrahman Akl**  
+AI Engineer focused on Agentic AI, LLMs, and AI-driven decision systems.
 
-ORACLE-X is a portfolio project focused on:
-
-- AI decision systems
-- enterprise intelligence
-- deterministic AI architecture
-- business analytics
-- decision validation
-- explainable AI
-- agentic workflows
-
----
+- [GitHub](https://github.com/AbdelrhmanAkl)
+- [LinkedIn](https://linkedin.com/in/abdelrahmanakl/)
 
 ## License
 
-Add the preferred project license before publishing the repository.\
+Check the repository for a license file and its terms before reusing or redistributing this project. No license is asserted here.
+
+---
+
+<div align="center">
+
+**ORACLE-X — Evidence first. Decisions validated. AI-assisted interpretation.**
+
+</div>
