@@ -270,6 +270,7 @@ PRETTY = {
         "AVAILABLE": "متاح",
         "STRUCTURALLY_STRONG": "قوي هيكليًا",
         "N/A": "غير متاح",
+        "UNAVAILABLE_OR_DISABLED": "غير متاح أو معطّل",
     },
 }
 
@@ -355,12 +356,14 @@ def tone_for(value):
     v = str(value).strip().upper()
     if v in {"VALID", "PASS", "COMPLETED", "TRUE", "AVAILABLE",
              "STRUCTURALLY_STRONG", "LOW", "OBSERVED_HISTORICAL",
-             "INTERPRETATION_AVAILABLE"}:
+             "INTERPRETATION_AVAILABLE", "DETERMINISTIC_RCA",
+             "DETERMINISTIC_OBSERVED_OUTCOMES", "DETERMINISTIC_READ_ONLY"}:
         return "good"
     if v in {"ACTIONABLE", "MODEL_DERIVED"}:
         return "info"
     if v in {"MEDIUM", "MODERATE", "WARNING", "PENDING", "SIMULATED",
-             "INSUFFICIENT_LEARNING_DATA", "INSUFFICIENT-EVIDENCE"}:
+             "INSUFFICIENT_LEARNING_DATA", "INSUFFICIENT-EVIDENCE",
+             "UNAVAILABLE_OR_DISABLED"}:
         return "warn"
     if v in {"HIGH", "CRITICAL", "INVALID", "FAILED", "REJECTED",
              "FALSE", "ERROR"}:
