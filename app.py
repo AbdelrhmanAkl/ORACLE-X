@@ -189,7 +189,7 @@ STR = {
 
 # The seven incidents: id -> (English name, Arabic name)
 INCIDENT_NAMES = {
-    2: ("Demand & Supply Imbalance", "اختلال الطلب والعرض"),
+    2: ("Demand & Supply Imbalance", "اختلال العرض والطلب"),
     3: ("Revenue Decline", "انخفاض الإيرادات"),
     4: ("Inventory Shortage", "نقص المخزون"),
     5: ("Customer Satisfaction Drop", "تراجع رضا العملاء"),
