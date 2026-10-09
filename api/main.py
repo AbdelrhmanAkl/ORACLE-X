@@ -4,10 +4,48 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
+from src.intelligence.summary_translator import SummaryTranslator
 from src.investigation.investigation_engine import InvestigationEngine
 
 
 logger = logging.getLogger(__name__)
+
+SUPPORTED_LANGUAGES = {"en", "ar"}
+
+
+def _normalize_language(lang):
+    normalized = (lang or "en").strip().lower()
+
+    if normalized not in SUPPORTED_LANGUAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unsupported language. "
+                f"Use one of: {', '.join(sorted(SUPPORTED_LANGUAGES))}."
+            ),
+        )
+
+    return normalized
+
+
+def _translate_summary(summary, language):
+    """
+    Translate the text fields of a summary. Facts, numbers and decisions are
+    never modified. Translation problems never fail the request: the English
+    summary is returned with translation.status set to FAILED.
+    """
+    try:
+        translator = SummaryTranslator()
+    except Exception as exc:
+        summary["language"] = "en"
+        summary["translation"] = {
+            "status": "FAILED",
+            "language": language,
+            "reason": str(exc)[:160],
+        }
+        return summary
+
+    return translator.translate_summary(summary, language)
 
 
 @asynccontextmanager
@@ -76,7 +114,9 @@ def investigate(incident_id: int):
 
 
 @app.post("/investigate/{incident_id}/summary")
-def investigate_summary(incident_id: int):
+def investigate_summary(incident_id: int, lang: str = "en"):
+    language = _normalize_language(lang)
+
     try:
         engine = InvestigationEngine()
         result = engine.investigate(incident_id)
@@ -151,7 +191,7 @@ def investigate_summary(incident_id: int):
             },
         }
 
-        return {
+        summary = {
             "investigation_id": result.get("investigation_id"),
             "incident": result.get("incident"),
             "decision": {
@@ -181,7 +221,13 @@ def investigate_summary(incident_id: int):
                 ) or [],
             },
             "provenance": result.get("provenance"),
+            "language": "en",
         }
+
+        if language != "en":
+            summary = _translate_summary(summary, language)
+
+        return summary
 
     except HTTPException:
         raise
@@ -201,5 +247,5 @@ def investigate_summary(incident_id: int):
 
 
 @app.get("/investigate/{incident_id}/summary")
-def get_investigation_summary(incident_id: int):
-    return investigate_summary(incident_id)
+def get_investigation_summary(incident_id: int, lang: str = "en"):
+    return investigate_summary(incident_id, lang)
