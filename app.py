@@ -437,7 +437,7 @@ def section(title, subtitle=""):
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
     /* text: deep navy */
@@ -469,23 +469,23 @@ st.markdown(
     --tint-mint: #e3f6ee;
     --tint-peach: #fff1e2;
     --tint-rose: #ffe9ee;
-    --shadow-sm: 0 1px 2px rgba(15, 42, 67, 0.04), 0 6px 18px -14px rgba(15, 42, 67, 0.16);
-    --shadow-lg: 0 1px 3px rgba(15, 42, 67, 0.05), 0 24px 48px -30px rgba(15, 60, 90, 0.28);
+    --shadow-sm: 0 1px 2px rgba(15, 42, 67, 0.05), 0 8px 22px -14px rgba(15, 42, 67, 0.20);
+    --shadow-lg: 0 2px 4px rgba(15, 42, 67, 0.04), 0 26px 52px -28px rgba(15, 60, 90, 0.30);
     --r-sm: 12px;
-    --r-lg: 18px;
+    --r-lg: 22px;
 }
 
 html, body, .stApp, .stMarkdown, button, input, textarea,
 [data-baseweb="tab"], [data-baseweb="select"], [data-testid="stNumberInput"] {
-    font-family: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 .stApp {
     color: var(--ink);
     background-color: var(--bg);
     background-image:
-        radial-gradient(900px 520px at 100% -8%, rgba(14, 154, 167, 0.08), transparent 62%),
-        radial-gradient(760px 480px at -6% 4%, rgba(46, 124, 200, 0.06), transparent 60%),
-        radial-gradient(900px 560px at 50% 112%, rgba(201, 151, 58, 0.06), transparent 62%);
+        radial-gradient(900px 520px at 100% -8%, rgba(14, 154, 167, 0.13), transparent 62%),
+        radial-gradient(760px 480px at -6% 4%, rgba(46, 124, 200, 0.10), transparent 60%),
+        radial-gradient(900px 560px at 50% 112%, rgba(201, 151, 58, 0.10), transparent 62%);
     background-attachment: fixed;
 }
 [data-testid="stHeader"] { background: transparent; }
@@ -500,7 +500,7 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
     display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     box-shadow: 0 10px 20px -10px rgba(14, 154, 167, 0.65);
 }
-.ox-brand-name { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--ink); }
+.ox-brand-name { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--ink); }
 .ox-brand-tag { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
 
 /* language switch */
@@ -517,7 +517,7 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 
 .ox-intro { padding: 1.4rem 0 0.4rem 0; }
 .ox-intro h1 {
-    font-size: 2.7rem; line-height: 1.15; font-weight: 700;
+    font-size: 2.7rem; line-height: 1.15; font-weight: 800;
     letter-spacing: -0.03em; color: var(--ink); margin: 0; padding: 0;
 }
 .ox-intro p { max-width: 640px; margin: 0.9rem 0 0 0; font-size: 1.02rem; line-height: 1.7; color: var(--ink-2); }
@@ -560,26 +560,21 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 .stButton > button:focus-visible { outline: 3px solid #a9dde3; outline-offset: 2px; }
 
 .ox-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; margin-top: 0.4rem; }
-.ox-step {
-    position: relative; overflow: hidden; background: #fff;
-    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.3rem 1.3rem 1.2rem; box-shadow: var(--shadow-sm);
-}
-.ox-step::before, .ox-cause::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-.ox-step:nth-child(1)::before, .ox-cause:nth-child(4n+1)::before { background: #0e9aa7; }
-.ox-step:nth-child(2)::before, .ox-cause:nth-child(4n+2)::before { background: #2b7fc4; }
-.ox-step:nth-child(3)::before, .ox-cause:nth-child(4n+3)::before { background: #0f8a63; }
-.ox-cause:nth-child(4n+4)::before { background: #c9973a; }
+.ox-step { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.2rem 1.3rem; box-shadow: var(--shadow-sm); }
+.ox-step:nth-child(1) { background: linear-gradient(160deg, var(--tint-violet), #fff 75%); }
+.ox-step:nth-child(2) { background: linear-gradient(160deg, var(--tint-sky), #fff 75%); }
+.ox-step:nth-child(3) { background: linear-gradient(160deg, var(--tint-mint), #fff 75%); }
 .ox-step b { display: block; font-size: 0.98rem; color: var(--ink); margin-bottom: 0.3rem; }
 .ox-step span { font-size: 0.88rem; line-height: 1.6; color: var(--ink-2); }
 
 .ox-section { margin: 1.9rem 0 0.2rem 0; }
-.ox-section h3 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin: 0; padding: 0; }
+.ox-section h3 { font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; color: var(--ink); margin: 0; padding: 0; }
 .ox-section p { margin: 0.35rem 0 0 0; font-size: 0.92rem; line-height: 1.6; color: var(--muted); max-width: 680px; }
 
 .ox-chip {
     display: inline-flex; align-items: center; gap: 0.4rem;
     padding: 0.3rem 0.65rem; border-radius: 999px;
-    font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+    font-size: 0.78rem; font-weight: 650; white-space: nowrap;
 }
 .ox-chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .ox-chip-prefix { font-weight: 500; opacity: 0.75; margin-inline-end: -0.2rem; }
@@ -591,14 +586,14 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
 
 .ox-verdict {
     position: relative; overflow: hidden;
-    border: 1px solid var(--line); border-radius: 22px; padding: 2.1rem 2.1rem 2rem 2.1rem; background: #fff;
+    border: 1px solid var(--line); border-radius: 26px; padding: 2.1rem 2.1rem 2rem 2.1rem; background: #fff;
     box-shadow: var(--shadow-lg);
 }
 .ox-verdict::before {
     content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--grad);
 }
 .ox-incident-id { font-size: 0.85rem; font-weight: 600; color: var(--accent-strong); }
-.ox-verdict-title { font-size: 1.9rem; line-height: 1.25; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); margin: 0.5rem 0 0 0; }
+.ox-verdict-title { font-size: 1.9rem; line-height: 1.25; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); margin: 0.5rem 0 0 0; }
 .ox-verdict-sub { font-size: 1rem; line-height: 1.7; color: var(--ink-2); margin: 0.7rem 0 0 0; max-width: 720px; }
 .ox-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.3rem; }
 
@@ -617,28 +612,32 @@ html, body, .stApp, .stMarkdown, button, input, textarea,
     border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.2rem 1.25rem; background: #fff;
     box-shadow: var(--shadow-sm);
 }
-.ox-metric::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad); }
+.ox-metric::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--grad); }
+.ox-metric:nth-child(1) { background: linear-gradient(180deg, var(--tint-violet), #fff 62%); }
+.ox-metric:nth-child(2) { background: linear-gradient(180deg, var(--tint-mint), #fff 62%); }
+.ox-metric:nth-child(3) { background: linear-gradient(180deg, var(--tint-sky), #fff 62%); }
+.ox-metric:nth-child(4) { background: linear-gradient(180deg, var(--tint-peach), #fff 62%); }
 .ox-metric:nth-child(1)::before { background: linear-gradient(90deg, #0e9aa7, #4cc3cc); }
 .ox-metric:nth-child(2)::before { background: linear-gradient(90deg, #0f8a63, #4fd1a8); }
 .ox-metric:nth-child(3)::before { background: linear-gradient(90deg, #2b7fc4, #5aa9e6); }
 .ox-metric:nth-child(4)::before { background: linear-gradient(90deg, #c9973a, #eab76a); }
 .ox-metric-label { font-size: 0.88rem; font-weight: 600; color: var(--ink-2); }
-.ox-metric-value { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); margin-top: 0.5rem; }
+.ox-metric-value { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); margin-top: 0.5rem; }
 .ox-metric-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin-top: 0.8rem; }
 .ox-delta { display: inline-flex; padding: 0.3rem 0.6rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; direction: ltr; unicode-bidi: isolate; }
-.ox-metric-value, .ox-delta, .ox-incident-id, .ox-action-text {
-    font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
-}
 .ox-note { font-size: 0.82rem; color: var(--muted); margin-top: 0.7rem; line-height: 1.6; }
 
 .ox-causes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
 .ox-cause {
-    position: relative; overflow: hidden;
-    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.4rem 1.4rem 1.3rem; background: #fff;
+    border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.3rem 1.4rem; background: #fff;
     box-shadow: var(--shadow-sm);
 }
+.ox-cause:nth-child(4n+1) { background: linear-gradient(165deg, var(--tint-violet), #fff 55%); }
+.ox-cause:nth-child(4n+2) { background: linear-gradient(165deg, var(--tint-sky), #fff 55%); }
+.ox-cause:nth-child(4n+3) { background: linear-gradient(165deg, var(--tint-mint), #fff 55%); }
+.ox-cause:nth-child(4n+4) { background: linear-gradient(165deg, var(--tint-peach), #fff 55%); }
 .ox-cause-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.ox-cause-title { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.ox-cause-title { font-size: 1.05rem; font-weight: 750; color: var(--ink); }
 .ox-confidence { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .ox-meter { display: flex; gap: 3px; }
 .ox-meter b { width: 20px; height: 6px; border-radius: 3px; background: #dde7ee; display: block; }
@@ -717,7 +716,7 @@ if IS_AR:
 <style>
 html, body, .stApp, .stMarkdown, button, input, textarea,
 [data-baseweb="tab"], [data-baseweb="select"], [data-testid="stNumberInput"] {
-    font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, sans-serif;
+    font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
 .block-container, [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"],
