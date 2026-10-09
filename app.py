@@ -50,7 +50,7 @@ STR = {
         "err_unexpected": "Something unexpected went wrong: {e}",
         "how_title": "How it works",
         "s1_t": "1. Choose an incident",
-        "s1_d": "Pick a detected business problem. Incident 2 is a good place to start.",
+        "s1_d": "Pick a detected business problem. Incident 1 is a good place to start.",
         "s2_t": "2. We investigate",
         "s2_d": "Clear business rules look at demand, stock, revenue and customer reviews, then rank the likely causes.",
         "s3_t": "3. You get an answer",
@@ -128,7 +128,7 @@ STR = {
         "err_unexpected": "حدث خطأ غير متوقع: {e}",
         "how_title": "كيف يعمل؟",
         "s1_t": "1. اختر حادثة",
-        "s1_d": "اختر مشكلة عمل تم رصدها. الحادثة رقم 2 بداية جيدة.",
+        "s1_d": "اختر مشكلة عمل تم رصدها. الحادثة رقم 1 بداية جيدة.",
         "s2_t": "2. نقوم بالتحقيق",
         "s2_d": "قواعد عمل واضحة تفحص الطلب والمخزون والإيرادات وتقييمات العملاء، ثم ترتب الأسباب المحتملة.",
         "s3_t": "3. تحصل على إجابة",
@@ -189,14 +189,17 @@ STR = {
 
 # The seven incidents: id -> (English name, Arabic name)
 INCIDENT_NAMES = {
-    2: ("Demand & Supply Imbalance", "اختلال العرض والطلب"),
-    3: ("Revenue Decline", "انخفاض الإيرادات"),
-    4: ("Inventory Shortage", "نقص المخزون"),
-    5: ("Customer Satisfaction Drop", "تراجع رضا العملاء"),
-    6: ("Delivery Performance Issue", "مشكلة أداء التوصيل"),
-    7: ("Seller Performance Risk", "مخاطر أداء البائعين"),
-    8: ("Operational Cost Increase", "ارتفاع التكاليف التشغيلية"),
+    1: ("Demand & Supply Imbalance", "اختلال الطلب والعرض"),
+    2: ("Revenue Decline", "انخفاض الإيرادات"),
+    3: ("Inventory Shortage", "نقص المخزون"),
+    4: ("Customer Satisfaction Drop", "تراجع رضا العملاء"),
+    5: ("Delivery Performance Issue", "مشكلة أداء التوصيل"),
+    6: ("Seller Performance Risk", "مخاطر أداء البائعين"),
+    7: ("Operational Cost Increase", "ارتفاع التكاليف التشغيلية"),
 }
+
+# Users see incidents numbered 1 to 7. The backend stores them as 2 to 8.
+API_ID_OFFSET = 1
 
 
 def t(key, **kw):
@@ -344,14 +347,16 @@ def translate_to_arabic(texts):
 
     system = (
         "You translate business-analytics text from English to Modern Standard "
-        "Arabic. Keep every number, percentage, currency amount, incident id, "
-        "and code identifier (such as ELEVATED_PRESSURE) exactly as written. "
+        "Arabic. Keep every number, percentage, currency amount and incident id "
+        "exactly as written. Translate code identifiers such as HIGH_RISK, "
+        "AT_RISK or ELEVATED_PRESSURE into natural Arabic words as well. "
         "Use clear, simple wording for non-technical readers and keep the "
         "original meaning, including every statement of uncertainty. "
-        "Input is a JSON array of strings. Reply with ONLY a JSON array of "
-        "the same length and order, containing the Arabic translations. "
-        "No markdown and no extra text."
+        "The input is a JSON object that maps ids to English strings. Reply "
+        "with ONLY a JSON object with the same ids mapped to the Arabic "
+        "translations. Translate every single string. No markdown, no notes."
     )
+    numbered = {str(i): text for i, text in enumerate(texts)}
     response = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": f"Bearer {key}"},
@@ -360,20 +365,26 @@ def translate_to_arabic(texts):
             "temperature": 0.1,
             "messages": [
                 {"role": "system", "content": system},
-                {"role": "user", "content": json.dumps(list(texts), ensure_ascii=False)},
+                {"role": "user", "content": json.dumps(numbered, ensure_ascii=False)},
             ],
         },
         timeout=90,
     )
     response.raise_for_status()
-    content = response.json()["choices"][0]["message"]["content"].strip()
-    if content.startswith("```"):
-        content = content.strip("`")
-        content = content[content.find("["):]
-    translated = json.loads(content)
-    if not isinstance(translated, list) or len(translated) != len(texts):
-        raise ValueError("translation size mismatch")
-    return {src: str(dst) for src, dst in zip(texts, translated)}
+    content = response.json()["choices"][0]["message"]["content"]
+    start, end = content.find("{"), content.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("translation reply was not JSON")
+    translated = json.loads(content[start:end + 1])
+
+    result = {}
+    for i, text in enumerate(texts):
+        value = translated.get(str(i))
+        if isinstance(value, str) and value.strip():
+            result[text] = value.strip()
+    if not result:
+        raise ValueError("translation reply was empty")
+    return result
 
 
 def collect_server_texts(payload):
@@ -413,6 +424,11 @@ def collect_server_texts(payload):
             seen.add(text)
             todo.append(text)
     return todo
+
+
+def bidi(value):
+    """Escape text and isolate its direction (fixes stray punctuation in RTL)."""
+    return f"<bdi>{esc(value)}</bdi>"
 
 
 def md(markup):
@@ -472,7 +488,7 @@ def num(source, key, default=0.0):
 def items_html(items, empty_text):
     if not items:
         return f"<div class='ox-empty-line'>{esc(empty_text)}</div>"
-    rows = "".join(f"<li>{esc(dyn(i))}</li>" for i in items)
+    rows = "".join(f"<li>{bidi(dyn(i))}</li>" for i in items)
     return f"<ul class='ox-list'>{rows}</ul>"
 
 
@@ -823,8 +839,9 @@ REQUIRED_SECTIONS = {
 }
 
 
-def fetch_investigation(incident_number):
+def fetch_investigation(display_number):
     """Call the API. Returns (data, error_message)."""
+    incident_number = display_number + API_ID_OFFSET
     try:
         with st.spinner(t("spinner")):
             response = requests.get(
@@ -839,7 +856,7 @@ def fetch_investigation(incident_number):
         return None, t("err_request", e=exc)
 
     if response.status_code == 404:
-        return None, t("err_404", n=incident_number)
+        return None, t("err_404", n=display_number)
     if response.status_code != 200:
         return None, t("err_http", c=response.status_code)
 
@@ -892,6 +909,7 @@ data = result["data"]
 
 # Arabic: translate the free-text parts of the answer (cached per text).
 translation_state = "none"
+translation_error = ""
 if IS_AR:
     pending = collect_server_texts(data)
     if pending:
@@ -899,8 +917,9 @@ if IS_AR:
             with st.spinner(t("translating")):
                 RUNTIME_TR.update(translate_to_arabic(tuple(pending)))
             translation_state = "ok"
-        except Exception:
+        except Exception as exc:
             translation_state = "failed"
+            translation_error = str(exc)[:160]
 
 try:
     incident = data["incident"]
@@ -924,21 +943,23 @@ try:
 
     if IS_AR and translation_state == "failed":
         md(f"<div class='ox-note'>{esc(t('ar_note'))}</div>")
+        if translation_error:
+            md(f"<div class='ox-note' dir='ltr' style='text-align:left'>Translation error: {esc(translation_error)}</div>")
     elif IS_AR and translation_state == "ok":
         md(f"<div class='ox-note'>{esc(t('tr_note'))}</div>")
 
     md(
         f"""
         <div class="ox-verdict">
-            <div class="ox-incident-id">{esc(t("incident", n=incident.get("incident_id")))}</div>
-            <div class="ox-verdict-title">{esc(dyn(incident.get("title")))}</div>
-            <div class="ox-verdict-sub">{esc(dyn(incident.get("summary")))}</div>
+            <div class="ox-incident-id">{esc(t("incident", n=result["id"]))}</div>
+            <div class="ox-verdict-title">{bidi(dyn(incident.get("title")))}</div>
+            <div class="ox-verdict-sub">{bidi(dyn(incident.get("summary")))}</div>
             <div class="ox-chips">{chips}</div>
             <div class="ox-action">
                 <div class="ox-action-label">{esc(t("what_to_do"))}</div>
-                <div class="ox-action-text">{esc(dyn(decision.get("recommended_action")))}</div>
+                <div class="ox-action-text">{bidi(dyn(decision.get("recommended_action")))}</div>
                 <div class="ox-action-why">
-                    <strong>{esc(t("why"))}</strong> {esc(dyn(decision.get("rationale")))}
+                    <strong>{esc(t("why"))}</strong> {bidi(dyn(decision.get("rationale")))}
                 </div>
             </div>
         </div>
@@ -1005,16 +1026,16 @@ try:
             cards += f"""
             <div class="ox-cause">
                 <div class="ox-cause-head">
-                    <div class="ox-cause-title">{esc(dyn(c.get("candidate_cause")))}</div>
+                    <div class="ox-cause-title">{bidi(dyn(c.get("candidate_cause")))}</div>
                     {confidence_meter(c.get("confidence"))}
                 </div>
                 <div class="ox-cause-block">
                     <b>{esc(t("supports"))}</b>
-                    <span>{esc(dyn(c.get("evidence_for")))}</span>
+                    <span>{bidi(dyn(c.get("evidence_for")))}</span>
                 </div>
                 <div class="ox-cause-block">
                     <b>{esc(t("holds_back"))}</b>
-                    <span>{esc(dyn(c.get("evidence_against")))}</span>
+                    <span>{bidi(dyn(c.get("evidence_against")))}</span>
                 </div>
                 <div class="ox-cause-type">
                     {chip(pretty(c.get("evidence_type")), "neutral", t("evidence"))}
@@ -1029,7 +1050,7 @@ try:
     md(
         f"""
         <div class="ox-plain">
-            <p>{esc(llm.get("executive_summary"))}</p>
+            <p>{bidi(dyn(llm.get("executive_summary")))}</p>
             <small>{esc(t("plain_note"))}</small>
         </div>
         """
