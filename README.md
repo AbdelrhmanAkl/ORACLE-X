@@ -492,6 +492,7 @@ Planned improvements, not currently implemented:
 ## Author
 
 **Abdelrahman Akl**
+
 AI Engineer focused on Agentic AI, LLMs, and AI-driven decision systems.
 
 [GitHub](https://github.com/AbdelrhmanAkl) · [LinkedIn](https://linkedin.com/in/abdelrahmanakl/)
